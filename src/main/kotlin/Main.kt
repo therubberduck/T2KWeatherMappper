@@ -17,7 +17,18 @@ fun main() {
     val moonPhaseCalc = MoonPhaseCalc(File(moonPhaseFileForYear))
     val visibilityConverter = VisibilityConverter(Random())
 //    val almanac = AlmanacMapper(moonPhaseCalc, visibilityConverter, GroundCover(0f, 0f, 0f, 0f, false)).makeAlmanac(File(inputFile))
-    val almanac = AlmanacMapper(moonPhaseCalc, visibilityConverter, GroundCover(0f, 586f, 24f, 215f, false)).makeAlmanac(File(inputFile))
+    val almanac = AlmanacMapper(
+        moonPhaseCalc = moonPhaseCalc,
+        visibilityConverter = visibilityConverter,
+        startingGroundCover = GroundCover(
+            mudDepth = 0f,
+            snowDepth = 586f,
+            packedSnowDepth = 293f,
+            frozenMudDepth = 24f,
+            frostDepth = 215f,
+            topMudFrozen = false
+        )
+    ).makeAlmanac(File(inputFile))
     writeCsv(almanac, File(outputFile))
 }
 

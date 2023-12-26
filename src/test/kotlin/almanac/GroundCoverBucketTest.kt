@@ -21,7 +21,7 @@ class GroundCoverBucketTest {
     fun addMudForRain() {
         val muddyGround = createStartingConditions(mudDepth = 5f)
         val newRain = 3f // Makes twice as much mud
-        val expected = createExpectedConditions(mudDepth = 11f)
+        val expected = createExpectedConditions(mudDepth = 8f)
 
         val result = muddyGround.addGroundCoverTest(rainAmount = newRain, positiveTemp = true)
 
@@ -86,11 +86,11 @@ class GroundCoverBucketTest {
 
     @Test
     fun removeSnowDuringThaw() {
-        val snowyGround = createStartingConditions(snowDepth = 10f)
-        val tempC = 5.0 // Thaws 5 units snow, dries 1 unit mud
+        val snowyGround = createStartingConditions(snowDepth = 30f)
+        val tempC = 5.0 // Thaws 20 units snow, dries 1 unit mud
 
-        // Mud equals 5 units thawed snow / 5 for snow to mud - 1 unit drying = 0
-        val expected = createExpectedConditions(mudDepth = 0f, snowDepth = 5f)
+        // Mud equals 20 units thawed snow / 5 for snow to mud - 1 unit drying = 3
+        val expected = createExpectedConditions(mudDepth = 2f, snowDepth = 10f)
 
         val result = snowyGround.addGroundCoverTest(tempC = tempC)
 
@@ -110,12 +110,12 @@ class GroundCoverBucketTest {
 
     @Test
     fun removeSnowDuringRain() {
-        val snowyGround = createStartingConditions(snowDepth = 11f)
+        val snowyGround = createStartingConditions(snowDepth = 51f)
         val rainAmount = 1f
-        val tempC = 5.0 // Thaws 5 units snow, doubled for rain to 10, all mud stays during rain
+        val tempC = 5.0 // Thaws 20 units snow, doubled for rain to 40, all mud stays during rain
 
-        // Mud equals 5 units thawed snow / 5 for snow to mud * 2 for wet weather + 2 for rain falling = 4
-        val expected = createExpectedConditions(mudDepth = 4f, snowDepth = 1f)
+        // Mud equals 20 units thawed snow / 5 for snow to mud * 2 for wet weather + 1 for rain falling = 9
+        val expected = createExpectedConditions(mudDepth = 9f, snowDepth = 11f)
 
         val result = snowyGround.addGroundCoverTest(rainAmount = rainAmount, tempC = tempC)
 
@@ -126,12 +126,25 @@ class GroundCoverBucketTest {
     fun removeSnowDuringRainCheckOverflow() {
         val snowyGround = createStartingConditions(snowDepth = 3f)
         val rainAmount = 1f
-        val tempC = 5.0 // Thaws 5 units snow, doubled for rain to 10, all mud stays during rain
+        val tempC = 5.0 // Thaws 20 units snow, doubled for rain to 40, all mud stays during rain
 
-        // Mud equals 3 units thawed snow (since that is all there is) / 5 for snow to mud + 2 rain falling = 2.6
-        val expected = createExpectedConditions(mudDepth = 2.6f, snowDepth = 0f)
+        // Mud equals 3 units thawed snow (since that is all there is) / 5 for snow to mud + 1 rain falling = 1.6
+        val expected = createExpectedConditions(mudDepth = 1.6f, snowDepth = 0f)
 
         val result = snowyGround.addGroundCoverTest(rainAmount = rainAmount, tempC = tempC)
+
+        assertEquals(expected, result)
+    }
+
+    @Test
+    fun packSnowWhenNotSnowing() {
+        val snowyCover = createStartingConditions(snowDepth = 1000f, packedSnowDepth = 0f)
+        val tempC = -5.0 // Freezes 3 units
+
+        // Ground frozen = 3 / 4 for slower freeze = 0.75
+        val expected = createExpectedConditions(snowDepth = 950f, packedSnowDepth = 50f, frostDepth =  0.75f)
+
+        val result = snowyCover.addGroundCoverTest(tempC = tempC)
 
         assertEquals(expected, result)
     }
@@ -296,15 +309,17 @@ class GroundCoverBucketTest {
     private fun createStartingConditions(
         mudDepth: Float = 0f,
         snowDepth: Float = 0f,
+        packedSnowDepth: Float = 0f,
         frozenMudDepth: Float = 0f,
         frostDepth: Float = 0f
     ): GroundCoverBucket {
-        return GroundCoverBucket(GroundCover(mudDepth, snowDepth, frozenMudDepth, frostDepth, false))
+        return GroundCoverBucket(GroundCover(mudDepth, snowDepth, packedSnowDepth, frozenMudDepth, frostDepth, false))
     }
 
     private fun createExpectedConditions(
         mudDepth: Float = 0f,
         snowDepth: Float = 0f,
+        packedSnowDepth: Float = 0f,
         frozenMudDepth: Float = 0f,
         frostDepth: Float = 0f,
         topMudFrozen: Boolean = false,
@@ -316,6 +331,6 @@ class GroundCoverBucketTest {
         else {
             frostDepth
         }
-        return GroundCover(mudDepth, snowDepth, frozenMudDepth, defaultFrostDepth, topMudFrozen)
+        return GroundCover(mudDepth, snowDepth, packedSnowDepth, frozenMudDepth, defaultFrostDepth, topMudFrozen)
     }
 }

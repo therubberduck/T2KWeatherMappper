@@ -15,7 +15,7 @@ class AlmanacMapperTest {
 
     @BeforeTest
     fun setUp() {
-        mapper = AlmanacMapper(null, VisibilityConverter(), GroundCover(0f, 0f, 0f, 0f, false))
+        mapper = AlmanacMapper(null, VisibilityConverter(), GroundCover(0f, 0f, 0f, 0f, 0f, false))
     }
 
     @Test

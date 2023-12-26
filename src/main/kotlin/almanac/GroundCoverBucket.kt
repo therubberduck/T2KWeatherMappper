@@ -1,6 +1,7 @@
 package almanac
 
 import model.GroundCover
+import java.lang.Float.min
 import kotlin.math.ceil
 import kotlin.math.max
 
@@ -40,12 +41,13 @@ class GroundCoverBucket(startingGroundCover: GroundCover) {
         }
 
         val newSnow = max(lastGroundCover.snowDepth + adjustment.snow, 0f)
+        val newPackedSnow = min(lastGroundCover.packedSnowDepth + adjustment.packSnow, newSnow)
 
         val topMudFrozen = if(newMud == 0f) {
             false
         }
         else {
-            adjustment.frozenMud > 0f
+            tempC <= 0
         }
 
         val newGroundCover = GroundCover(
@@ -53,13 +55,14 @@ class GroundCoverBucket(startingGroundCover: GroundCover) {
             snowDepth = newSnow,
             frozenMudDepth = newFrozenMud,
             frostDepth = newFrostDepth,
-            topMudFrozen = topMudFrozen
+            topMudFrozen = topMudFrozen,
+            packedSnowDepth = newPackedSnow
         )
         lastGroundCover = newGroundCover
         return newGroundCover
     }
 
-    private data class MudAdjustment(val mud: Float, val snow: Float, val frozenMud: Float, val frozenGround: Float)
+    private data class MudAdjustment(val mud: Float, val snow: Float, val packSnow: Float, val frozenMud: Float, val frozenGround: Float)
 
     private fun getAdjustments(roundedTemp: Int, rainAmount: Float, snowAmount: Float, evaporation: Int): MudAdjustment {
         var frozenGroundAdjustment = 0f
@@ -77,10 +80,19 @@ class GroundCoverBucket(startingGroundCover: GroundCover) {
             // Mud equals new mod, minus mud frozen
             val mudAdjustment = frozenMudAdjustment.unaryMinus() - evaporation
             // And also add the snow
-            val snowAdjustment = snowAmount + rainAmount * 10 // 1mm rain = 10cm snow
+            var snowAdjustment = snowAmount + rainAmount * 10 // 1mm rain = 10cm snow
+            val packedSnowAdjustment = if(lastGroundCover.snowDepth + snowAdjustment > 150 && lastGroundCover.snowDepth > lastGroundCover.packedSnowDepth) {
+                val rawPackSnowAmount = (lastGroundCover.snowDepth + snowAdjustment) * 0.05f
+                snowAdjustment =- rawPackSnowAmount
+                rawPackSnowAmount
+            }
+            else {
+                0f
+            }
             return MudAdjustment(
                 mud = mudAdjustment,
                 snow = snowAdjustment,
+                packSnow = packedSnowAdjustment,
                 frozenMud = frozenMudAdjustment,
                 frozenGround = frozenGroundAdjustment
             )
@@ -92,11 +104,19 @@ class GroundCoverBucket(startingGroundCover: GroundCover) {
             // Get snowToMud and multiply by 2 if raining
             val rawSnowAdjustment = snowToMud(roundedTemp).toFloat() * if(rainAmount > 0f) 2 else 1
             // Never thaw more snow than we have
-            val snowAdjustment = if(rawSnowAdjustment > lastGroundCover.snowDepth) {
+            var snowAdjustment = if(rawSnowAdjustment > lastGroundCover.snowDepth) {
                 -lastGroundCover.snowDepth
             }
             else {
                 -rawSnowAdjustment
+            }
+            val packedSnowAdjustment = if(lastGroundCover.snowDepth + snowAdjustment > 150 && lastGroundCover.snowDepth > lastGroundCover.packedSnowDepth) {
+                val rawPackSnowAmount = (lastGroundCover.snowDepth + snowAdjustment) * 0.20f
+                snowAdjustment =- rawPackSnowAmount
+                rawPackSnowAmount
+            }
+            else {
+                0f
             }
 
             // Raw freeze adjustment will be negative, indicating how much to reduce frozenMudDepth by
@@ -125,6 +145,7 @@ class GroundCoverBucket(startingGroundCover: GroundCover) {
             return MudAdjustment(
                 mud = mudAdjustment,
                 snow = snowAdjustment,
+                packSnow = packedSnowAdjustment,
                 frozenMud = frozenMudAdjustment,
                 frozenGround = frozenGroundAdjustment
             )
@@ -137,12 +158,12 @@ class GroundCoverBucket(startingGroundCover: GroundCover) {
 
     private fun snowToMud(roundedTemp: Int): Int {
         return when (roundedTemp) {
-            30 -> 80
-            25 -> 55
-            20 -> 35
-            15 -> 20
-            10 -> 10
-            5 -> 5
+            30 -> 500
+            25 -> 250
+            20 -> 100
+            15 -> 50
+            10 -> 30
+            5 -> 20
             else -> throw IllegalStateException("All temperatures below zero are handled in a different branch in getMudAdjustment()")
         }
     }
@@ -155,7 +176,7 @@ class GroundCoverBucket(startingGroundCover: GroundCover) {
             15 -> -10
             10 -> -5
             5 -> -3
-            0 -> 1
+            0 -> 0
             -5 -> 3
             -10 -> 5
             -15 -> 10

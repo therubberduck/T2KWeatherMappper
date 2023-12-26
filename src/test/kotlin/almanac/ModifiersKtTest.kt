@@ -17,7 +17,7 @@ class ModifiersKtTest {
         val newTemp = temp.reduceTempForNuclearWinter(date)
 
         // Assert
-        assertEquals(-10.0, newTemp)
+        assertEquals(-7.5, newTemp)
     }
 
     @Test
@@ -30,7 +30,7 @@ class ModifiersKtTest {
         val newTemp = temp.reduceTempForNuclearWinter(date)
 
         // Assert
-        assertEquals(10.0, newTemp)
+        assertEquals(15.0, newTemp)
     }
 
     @Test
@@ -69,6 +69,6 @@ class ModifiersKtTest {
         val newTemp = temp.reduceTempForNuclearWinter(date)
 
         // Assert
-        assertEquals(5.0, newTemp)
+        assertEquals(10.0, newTemp)
     }
 }
