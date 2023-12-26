@@ -1,0 +1,4 @@
+package almanac
+
+class GroundCoverBucket {
+}

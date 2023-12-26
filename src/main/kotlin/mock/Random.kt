@@ -1,0 +1,4 @@
+package mock
+
+class Random {
+}
