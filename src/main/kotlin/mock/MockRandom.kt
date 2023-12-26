@@ -1,4 +1,7 @@
 package mock
 
-class MockRandom {
+class MockRandom(private val value: Double): IRandom {
+    override fun rand(): Double {
+        return value
+    }
 }

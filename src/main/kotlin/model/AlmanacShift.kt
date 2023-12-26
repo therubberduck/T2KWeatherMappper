@@ -1,3 +1,5 @@
+package model
+
 data class AlmanacShift(
     val feltTemp: String,
     val temp: String,
@@ -7,5 +9,10 @@ data class AlmanacShift(
     val ground: String,
     val visibility: String,
     val nightVision: String,
-    val overflow: String
+    val rainMm: String,
+    val evaporation: String,
+    val mudAdjust: String,
+    val mudDepth: String,
+    val frostDepth: String,
+    val snowDepth: String
 )

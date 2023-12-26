@@ -2,7 +2,7 @@ plugins {
     kotlin("jvm") version "1.9.21"
 }
 
-group = "org.example"
+group = "com.dicemonger"
 version = "1.0-SNAPSHOT"
 
 repositories {
@@ -10,7 +10,10 @@ repositories {
 }
 
 dependencies {
-    testImplementation("org.jetbrains.kotlin:kotlin-test")
+    implementation("joda-time:joda-time:2.12.5")
+
+    testImplementation(kotlin("test"))
+    testImplementation("org.junit.jupiter:junit-jupiter-params:5.1.0")
 }
 
 tasks.test {

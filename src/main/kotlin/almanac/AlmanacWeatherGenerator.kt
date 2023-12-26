@@ -1,110 +1,198 @@
 package almanac
 
-fun generateAlmanacWeather(tempC: Double, rainAmount: Float?, snowAmount: Float?, cloudCover: Int, weatherMain: String): String {
-    val rain = rainAmount.toRain()
-    val snow = snowAmount.toSnow()
-    val specialWeather = weatherMain.weatherMainToSpecialWeather()
-    return if(rain != Rain.None || snow != Snow.None) {
-        val rainSnow = getRainSnowDescription(tempC, rain, snow)
-        if(specialWeather != null) {
-            if(specialWeather == "Thunderstorm") {
-                "Thunderstorm with ${rainSnow.lowercase()}"
+import model.RawWeatherShift
+
+object AlmanacWeatherGenerator {
+    fun generateAlmanacWeather(
+        tempC: Double,
+        rainAmount: Float?,
+        snowAmount: Float?,
+        cloudCover: Int,
+        dominant: DominantWeather
+    ): Weather {
+        val rain = rainAmount.toRain()
+        val snow = snowAmount.toSnow()
+
+        return when (dominant) {
+            DominantWeather.Clouds -> Weather(dominant, description = cloudCover.cloudCoverToClouds())
+            DominantWeather.Rain,
+            DominantWeather.Snow -> {
+                val precipitation = convertRainSnowForTemp(tempC, rain, snow)
+                getWeatherForPrecipitation(dominant, precipitation)
             }
-            else {
-                "$rainSnow and ${specialWeather.lowercase()}"
+
+            DominantWeather.Mist -> {
+                if (rain != Rain.None || snow != Snow.None) {
+                    val precipitation = convertRainSnowForTemp(tempC, rain, snow)
+                    getWeatherForPrecipitation(dominant, precipitation, suffix = "and mist")
+                } else {
+                    Weather(dominant, description = "Mist")
+                }
             }
-        }
-        else {
-            rainSnow
-        }
-    }
-    else if(specialWeather != null) {
-        specialWeather
-    }
-    else {
-        cloudCover.cloudCoverToClouds()
-    }
-}
 
-fun String.weatherMainToSpecialWeather(): String? {
-    return when(this) {
-        "Mist" -> "Mist"
-        "Fog" -> "Fog"
-        "Thunderstorm" -> "Thunderstorm"
-        else -> null
-    }
-}
+            DominantWeather.Fog -> {
+                if (rain != Rain.None || snow != Snow.None) {
+                    val precipitation = convertRainSnowForTemp(tempC, rain, snow)
+                    getWeatherForPrecipitation(dominant, precipitation, suffix = "and fog")
+                } else {
+                    Weather(dominant, description = "Fog")
+                }
+            }
 
-fun Int.cloudCoverToClouds(): String {
-    return when(this) {
-        25 -> "Passing clouds"
-        50 -> "Scattered clouds"
-        75 -> "Broken clouds"
-        100 -> "Overcast"
-        else -> "Clear"
-    }
-}
-
-fun getRainSnowDescription(tempC: Double, rain: Rain, snow: Snow): String {
-    return if(tempC <= 0) {
-        if(snow != Snow.None) {
-            snow.desc
-        }
-        else {
-            when(rain) {
-                Rain.None -> throw IllegalStateException()
-                Rain.Light -> Snow.Light.desc
-                Rain.Moderate -> Snow.Moderate.desc
-                Rain.Heavy -> Snow.Heavy.desc
+            DominantWeather.Thunderstorm -> {
+                if (rain != Rain.None || snow != Snow.None) {
+                    val precipitation = convertRainSnowForTemp(tempC, rain, snow)
+                    getWeatherForPrecipitation(dominant, precipitation, prefix = "Thunderstorm with")
+                } else {
+                    Weather(dominant, description = "Thunderstorm")
+                }
             }
         }
     }
-    else {
-        if(rain != Rain.None) {
-            rain.desc
+
+    fun DominantWeather(rawWeatherShift: RawWeatherShift, shiftTemp: Double): DominantWeather {
+        return when {
+            rawWeatherShift.fourPlusMatchesMainTag(DominantWeather.Thunderstorm.mainTag) -> DominantWeather.Thunderstorm
+            rawWeatherShift.fourPlusMatchesMainTag(DominantWeather.Snow.mainTag) -> {
+                if (shiftTemp > 0.0) {
+                    DominantWeather.Rain
+                } else {
+                    DominantWeather.Snow
+                }
+            }
+
+            rawWeatherShift.fourPlusMatchesMainTag(DominantWeather.Rain.mainTag) -> {
+                if (shiftTemp > 0.0) {
+                    DominantWeather.Rain
+                } else {
+                    DominantWeather.Snow
+                }
+            }
+
+            rawWeatherShift.fourPlusMatchesMainTag(DominantWeather.Fog.mainTag) -> DominantWeather.Fog
+            rawWeatherShift.fourPlusMatchesMainTag(DominantWeather.Mist.mainTag) -> DominantWeather.Mist
+            else -> DominantWeather.Clouds
         }
-        else {
-            when(snow) {
-                Snow.None -> throw IllegalStateException()
-                Snow.Light -> Rain.Light.desc
-                Snow.Moderate -> Rain.Moderate.desc
-                Snow.Heavy -> Rain.Heavy.desc
+    }
+
+    private fun RawWeatherShift.fourPlusMatchesMainTag(match: String): Boolean {
+        val count = this.count { hour ->
+            hour.weatherMain == match
+        }
+        return count >= 4
+    }
+
+    fun String.weatherMainToSpecialWeather(): String? {
+        return when (this) {
+            "Mist" -> "Mist"
+            "Fog" -> "Fog"
+            "Thunderstorm" -> "Thunderstorm"
+            else -> null
+        }
+    }
+
+    fun Int.cloudCoverToClouds(): String {
+        return when (this) {
+            25 -> "Passing clouds"
+            50 -> "Scattered clouds"
+            75 -> "Broken clouds"
+            100 -> "Overcast"
+            else -> "Clear"
+        }
+    }
+
+    fun getWeatherForPrecipitation(
+        dominant: DominantWeather,
+        precipitation: Precipitation,
+        prefix: String? = null,
+        suffix: String? = null
+    ): Weather {
+        val description = when {
+            prefix != null -> prefix + " " + precipitation.desc.lowercase()
+            suffix != null -> precipitation.desc + " " + suffix.lowercase()
+            else -> precipitation.desc
+        }
+        return Weather(dominant, precipitation, description)
+    }
+
+    fun convertRainSnowForTemp(tempC: Double, rain: Rain, snow: Snow): Precipitation {
+        return if (tempC <= 0) {
+            if (snow != Snow.None) {
+                snow
+            } else {
+                when (rain) {
+                    Rain.None -> throw IllegalStateException()
+                    Rain.Light -> Snow.Light
+                    Rain.Moderate -> Snow.Moderate
+                    Rain.Heavy -> Snow.Heavy
+                }
+            }
+        } else {
+            if (rain != Rain.None) {
+                rain
+            } else {
+                when (snow) {
+                    Snow.None -> throw IllegalStateException()
+                    Snow.Light -> Rain.Light
+                    Snow.Moderate -> Rain.Moderate
+                    Snow.Heavy -> Rain.Heavy
+                }
             }
         }
     }
-}
 
-fun Float?.toRain(): Rain {
-    return when{
-        this == null -> Rain.None
-        this < 1 -> Rain.Light
-        this < 4 -> Rain.Moderate
-        else -> Rain.Heavy
+    fun Float?.toRain(): Rain {
+        return when {
+            this == null -> Rain.None
+            this < 1 -> Rain.Light
+            this < 4 -> Rain.Moderate
+            else -> Rain.Heavy
+        }
     }
-}
 
-fun Float?.toSnow(): Snow {
-    return when () {
-        "light snow" -> Snow.Light
-        "snow" -> Snow.Moderate
-        "heavy snow" -> Snow.Heavy
-        else -> {
-            println("Failed snow with $snowDescription")
-            Snow.None
+    fun Float?.toSnow(): Snow {
+        return when {
+            this == null -> Snow.None
+            this < 1 -> Snow.Light
+            this < 2 -> Snow.Moderate
+            else -> Snow.Heavy
         }
     }
 }
 
-enum class Rain(val desc: String) {
+data class Weather(
+    val dominant: DominantWeather,
+    val precipitation: Precipitation = None,
+    val description: String
+)
+
+interface Precipitation {
+    val desc: String
+}
+
+object None : Precipitation{
+    override val desc: String = ""
+}
+
+enum class Rain(override val desc: String) : Precipitation {
     None(""),
     Light("Light rain"),
     Moderate("Moderate rain"),
     Heavy("Heavy rain")
 }
 
-enum class Snow(val desc: String) {
+enum class Snow(override val desc: String) : Precipitation {
     None(""),
     Light("Light snow"),
     Moderate("Snow"),
     Heavy("Heavy snow")
+}
+
+enum class DominantWeather(val mainTag: String) {
+    Clouds("Clouds"),
+    Rain("Rain"),
+    Snow("Snow"),
+    Mist("Mist"),
+    Fog("Fog"),
+    Thunderstorm("Thunderstorm")
 }

@@ -1,3 +1,5 @@
+package model
+
 import org.joda.time.DateTime
 
 data class AlmanacDay(

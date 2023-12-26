@@ -1,3 +1,5 @@
+package model
+
 data class RawWeatherDay(
     val night: RawWeatherShift,
     val morning: RawWeatherShift,
