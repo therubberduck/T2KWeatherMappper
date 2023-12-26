@@ -1,6 +1,7 @@
 package almanac
 
 import model.GroundCover
+import java.text.DecimalFormat
 
 object GroundToString {
     fun makeString(groundData: GroundCover): String {
@@ -36,13 +37,13 @@ object GroundToString {
         else {
             var output = ""
             if(snowString != null) {
-                output += snowString
+                output += snowString + "(${groundData.snowDepth.mmToCm()})"
             }
             if(mudString != null && output.isNotEmpty()) {
                 output += ", "
             }
             if(mudString != null) {
-                output += mudString
+                output += mudString + "(${groundData.mudDepth.mmToCm()})"
             }
             if(frozenGround != null && output.isNotEmpty()) {
                 output += ", "
@@ -51,6 +52,16 @@ object GroundToString {
                 output += frozenGround
             }
             return "\"" + output.replaceFirstChar { it.uppercase() } + "\""
+        }
+    }
+
+    val decimalFormat = DecimalFormat("0.#")
+    private fun Float.mmToCm(): String {
+        return if(this >= 1f) {
+            "${(this/10).toInt()}cm"
+        }
+        else {
+            decimalFormat.format(this/10) + "cm"
         }
     }
 }

@@ -40,3 +40,10 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+Year2000.csv
+
+output.csv
+
+output99.csv
+
+*.csv#

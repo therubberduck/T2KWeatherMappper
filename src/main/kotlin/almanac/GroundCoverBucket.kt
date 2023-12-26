@@ -115,7 +115,7 @@ class GroundCoverBucket(startingGroundCover: GroundCover) {
             // Then add rain or subtract mud drying
             val mudAdjustment = frozenMudAdjustment.unaryMinus() +
                     (snowAdjustment.unaryMinus() / 5) +
-                    snowAmount / 10f + // 1cm snow = 1mm rain
+                    snowAmount / 5f + // 1cm snow = 1mm rain = 2mm mud
                     if (rainAmount == 0f) {
                         -evaporation.toFloat()
                     } else {
@@ -137,9 +137,9 @@ class GroundCoverBucket(startingGroundCover: GroundCover) {
 
     private fun snowToMud(roundedTemp: Int): Int {
         return when (roundedTemp) {
-            30 -> 50
-            25 -> 40
-            20 -> 30
+            30 -> 80
+            25 -> 55
+            20 -> 35
             15 -> 20
             10 -> 10
             5 -> 5
