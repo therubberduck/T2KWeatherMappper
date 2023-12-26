@@ -8,11 +8,5 @@ data class AlmanacShift(
     val wind: String,
     val ground: String,
     val visibility: String,
-    val nightVision: String,
-    val rainMm: String,
-    val evaporation: String,
-    val mudAdjust: String,
-    val mudDepth: String,
-    val frostDepth: String,
-    val snowDepth: String
+    val nightVision: String
 )

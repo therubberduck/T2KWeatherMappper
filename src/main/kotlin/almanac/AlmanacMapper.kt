@@ -106,13 +106,7 @@ class AlmanacMapper(private val moonPhaseCalc: MoonPhaseCalc? = null, private va
             wind = windDescription,
             ground = groundCoverString,
             visibility = visibility.desc,
-            nightVision = nvVision.desc,
-            rainMm = shiftTotalRainAmount.toString(),
-            evaporation = rawGroundCover.evaporation.toString(),
-            mudAdjust = rawGroundCover.mudAdjust.toString(),
-            mudDepth = rawGroundCover.frozenMudDepth.toString(),
-            frostDepth = rawGroundCover.frostDepth.toString(),
-            snowDepth = rawGroundCover.snowDepth.toString()
+            nightVision = nvVision.desc
         )
     }
 

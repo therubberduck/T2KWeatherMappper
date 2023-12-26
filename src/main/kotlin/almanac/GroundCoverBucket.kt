@@ -18,7 +18,6 @@ class GroundCoverBucket(startingGroundCover: GroundCover) {
         // Units are in mm
 
         val latitude = 52.237 // For Warsaw
-//        val evaporation = ceil( max((((700 * tempC ) / (100 - latitude)) + 15 * (tempC - dewPointC)) / (80 - tempC), 0.0)).toInt()
         val evaporation = max((((700 * tempC ) / (100 - latitude)) + 15 * (tempC - dewPointC)) / (80 - tempC), 0.0).toInt()
 
         val roundedTemp = tempC.roundToFiveInt()
@@ -54,9 +53,7 @@ class GroundCoverBucket(startingGroundCover: GroundCover) {
             snowDepth = newSnow,
             frozenMudDepth = newFrozenMud,
             frostDepth = newFrostDepth,
-            topMudFrozen = topMudFrozen,
-            evaporation = evaporation,
-            mudAdjust = adjustment.mud
+            topMudFrozen = topMudFrozen
         )
         lastGroundCover = newGroundCover
         return newGroundCover
