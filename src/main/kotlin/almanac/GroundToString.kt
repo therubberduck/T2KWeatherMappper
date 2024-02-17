@@ -39,8 +39,15 @@ object GroundToString {
             var output = ""
             if(snowString != null) {
                 output += snowString
+                val snowExtra = mutableListOf<String>()
                 if(groundData.snowDepth >= 3) {
-                    output += "(${groundData.snowDepth.mmToCm()})"
+                    snowExtra.add(groundData.snowDepth.mmToCm())
+                }
+                if(groundData.meltingSnow) {
+                    snowExtra.add("melting")
+                }
+                if(snowExtra.isNotEmpty()) {
+                    output += "(${snowExtra.joinToString(",")})"
                 }
             }
             if(mudString != null && output.isNotEmpty()) {

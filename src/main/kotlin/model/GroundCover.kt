@@ -6,5 +6,6 @@ data class GroundCover(
     val packedSnowDepth: Float, // Mm of the snow that is packed. Never more than half height.
     val frozenMudDepth: Float,
     val frostDepth: Float,
-    val topMudFrozen: Boolean
+    val topMudFrozen: Boolean,
+    val meltingSnow: Boolean
 )

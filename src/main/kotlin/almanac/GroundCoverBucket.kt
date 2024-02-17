@@ -51,13 +51,16 @@ class GroundCoverBucket(startingGroundCover: GroundCover) {
             roundedTemp <= 0
         }
 
+        val meltingSnow = roundedTemp > 0
+
         val newGroundCover = GroundCover(
             mudDepth = newMud,
             snowDepth = newSnow,
             frozenMudDepth = newFrozenMud,
             frostDepth = newFrostDepth,
             topMudFrozen = topMudFrozen,
-            packedSnowDepth = newPackedSnow
+            packedSnowDepth = newPackedSnow,
+            meltingSnow = meltingSnow
         )
         lastGroundCover = newGroundCover
         return newGroundCover

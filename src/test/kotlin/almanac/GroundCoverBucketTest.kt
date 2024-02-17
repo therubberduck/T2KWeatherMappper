@@ -142,7 +142,7 @@ class GroundCoverBucketTest {
         val tempC = -5.0 // Freezes 3 units
 
         // Ground frozen = 3 / 4 for slower freeze = 0.75
-        val expected = createExpectedConditions(snowDepth = 950f, packedSnowDepth = 50f, frostDepth =  0.75f)
+        val expected = createExpectedConditions(snowDepth = 950f, packedSnowDepth = 50f, frostDepth =  0.75f, meltingSnow = false)
 
         val result = snowyCover.addGroundCoverTest(tempC = tempC)
 
@@ -155,7 +155,7 @@ class GroundCoverBucketTest {
         val tempC = -5.0 // Freezes 3 units
 
         // Ground frozen = 3 / 4 for slower freeze = 0.75
-        val expected = createExpectedConditions(frostDepth =  0.75f)
+        val expected = createExpectedConditions(frostDepth =  0.75f, meltingSnow = false)
 
         val result = noGroundCover.addGroundCoverTest(tempC = tempC)
 
@@ -166,7 +166,7 @@ class GroundCoverBucketTest {
     fun checkMax250UnitsFrozenGround() {
         val frozenMud = createStartingConditions(frostDepth = 245f)
         val tempC = -25.0 // Freezes 25 unit mud
-        val expected = createExpectedConditions(mudDepth = 0f, frostDepth = 250f)
+        val expected = createExpectedConditions(mudDepth = 0f, frostDepth = 250f, meltingSnow = false)
 
         val result = frozenMud.addGroundCoverTest(tempC = tempC)
 
@@ -199,7 +199,7 @@ class GroundCoverBucketTest {
     fun addFrozenMud() {
         val muddyGround = createStartingConditions(mudDepth = 5f)
         val tempC = -5.0 // Freezes 3 units
-        val expected = createExpectedConditions(mudDepth = 2f, frozenMudDepth = 3f, topMudFrozen = true)
+        val expected = createExpectedConditions(mudDepth = 2f, frozenMudDepth = 3f, topMudFrozen = true, meltingSnow = false)
 
         val result = muddyGround.addGroundCoverTest(tempC = tempC)
 
@@ -212,7 +212,7 @@ class GroundCoverBucketTest {
         val tempC = -5.0 // Freezes 3 units
 
         // Ground frozen = 3 - 1 mud / 4 for slower freeze = 0.5
-        val expected = createExpectedConditions(mudDepth = 0f, frozenMudDepth = 1f, frostDepth = 0.5f, topMudFrozen = false)
+        val expected = createExpectedConditions(mudDepth = 0f, frozenMudDepth = 1f, frostDepth = 0.5f, topMudFrozen = false, meltingSnow = false)
 
         val result = muddyGround.addGroundCoverTest(tempC = tempC)
 
@@ -234,7 +234,7 @@ class GroundCoverBucketTest {
     fun checkMax250UnitsFrozenMud() {
         val frozenMud = createStartingConditions(mudDepth = 20f, frozenMudDepth = 240f)
         val tempC = -25.0 // Freezes 25 unit mud
-        val expected = createExpectedConditions(mudDepth = 0f, frozenMudDepth = 250f, topMudFrozen = false)
+        val expected = createExpectedConditions(mudDepth = 0f, frozenMudDepth = 250f, topMudFrozen = false, meltingSnow = false)
 
         val result = frozenMud.addGroundCoverTest(tempC = tempC)
 
@@ -256,7 +256,7 @@ class GroundCoverBucketTest {
     fun checkMax250UnitsCombinedFrozenWhenFreezingMud() {
         val frozenMud = createStartingConditions(mudDepth = 20f, frozenMudDepth = 100f, frostDepth = 150f)
         val tempC = -25.0 // Freezes 25 unit mud
-        val expected = createExpectedConditions(mudDepth = 0f, frozenMudDepth = 120f, frostDepth = 130f)
+        val expected = createExpectedConditions(mudDepth = 0f, frozenMudDepth = 120f, frostDepth = 130f, meltingSnow = false)
 
         val result = frozenMud.addGroundCoverTest(tempC = tempC)
 
@@ -269,7 +269,7 @@ class GroundCoverBucketTest {
         val tempC = -25.0 // Freezes 25 unit ground
 
         // Ground frozen = 25 / 4 for slower freeze = 6.25
-        val expected = createExpectedConditions(mudDepth = 0f, frozenMudDepth = 100f, frostDepth = 150f)
+        val expected = createExpectedConditions(mudDepth = 0f, frozenMudDepth = 100f, frostDepth = 150f, meltingSnow = false)
 
         val result = frozenMud.addGroundCoverTest(tempC = tempC)
 
@@ -313,7 +313,7 @@ class GroundCoverBucketTest {
         frozenMudDepth: Float = 0f,
         frostDepth: Float = 0f
     ): GroundCoverBucket {
-        return GroundCoverBucket(GroundCover(mudDepth, snowDepth, packedSnowDepth, frozenMudDepth, frostDepth, false))
+        return GroundCoverBucket(GroundCover(mudDepth, snowDepth, packedSnowDepth, frozenMudDepth, frostDepth, false, false))
     }
 
     private fun createExpectedConditions(
@@ -323,7 +323,8 @@ class GroundCoverBucketTest {
         frozenMudDepth: Float = 0f,
         frostDepth: Float = 0f,
         topMudFrozen: Boolean = false,
-        negativeTemp: Boolean = false
+        negativeTemp: Boolean = false,
+        meltingSnow: Boolean = negativeTemp.not()
     ): GroundCover {
         val defaultFrostDepth = if(negativeTemp) {
             0.75f
@@ -331,6 +332,7 @@ class GroundCoverBucketTest {
         else {
             frostDepth
         }
-        return GroundCover(mudDepth, snowDepth, packedSnowDepth, frozenMudDepth, defaultFrostDepth, topMudFrozen)
+
+        return GroundCover(mudDepth, snowDepth, packedSnowDepth, frozenMudDepth, defaultFrostDepth, topMudFrozen, meltingSnow)
     }
 }

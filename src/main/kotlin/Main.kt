@@ -26,7 +26,8 @@ fun main() {
             packedSnowDepth = 293f,
             frozenMudDepth = 24f,
             frostDepth = 215f,
-            topMudFrozen = false
+            topMudFrozen = false,
+            meltingSnow = false
         )
     ).makeAlmanac(File(inputFile))
     writeCsv(almanac, File(outputFile))
