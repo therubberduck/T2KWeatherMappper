@@ -1,6 +1,7 @@
 package almanac
 
 import mock.IRandom
+import mock.IVisibilityConverter
 import mock.Random
 import model.MoonPhase
 import model.Shift
@@ -10,14 +11,26 @@ import kotlin.math.ceil
 import kotlin.math.pow
 import kotlin.math.sqrt
 
-class VisibilityConverter(private val rand: IRandom = Random()) {
+class VisibilityConverter(private val rand: IRandom = Random()) : IVisibilityConverter {
 
-    fun getVisibility(
+    override fun getVisibility(
         shift: Shift,
         moonPhase: MoonPhase,
-        cloudCover: Int,
+        weather: Weather
+    ): Visibility {
+        return if (shift == Shift.MORNING || shift == Shift.AFTERNOON) {
+            getVisibilityDay(weather.dominant, weather.precipitation)
+        } else {
+            getVisibilityNight(moonPhase, weather.roundedCloudCover, weather.dominant)
+        }
+    }
+
+    override fun getVisibility(
+        shift: Shift,
+        moonPhase: MoonPhase,
         dominantWeather: DominantWeather,
-        precipitation: Precipitation
+        precipitation: Precipitation,
+        cloudCover: Int
     ): Visibility {
         return if (shift == Shift.MORNING || shift == Shift.AFTERNOON) {
             getVisibilityDay(dominantWeather, precipitation)

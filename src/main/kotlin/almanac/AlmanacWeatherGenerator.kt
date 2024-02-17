@@ -14,37 +14,47 @@ object AlmanacWeatherGenerator {
         val snow = snowAmount.toSnow()
 
         return when (dominant) {
-            DominantWeather.Clouds -> Weather(dominant, description = cloudCover.cloudCoverToClouds())
+            DominantWeather.Clouds -> Weather(
+                dominant,
+                roundedCloudCover = cloudCover,
+                description = cloudCover.cloudCoverToClouds()
+            )
+
             DominantWeather.Rain,
             DominantWeather.Snow -> {
                 val precipitation = convertRainSnowForTemp(tempC, rain, snow)
-                getWeatherForPrecipitation(dominant, precipitation)
+                getWeatherForPrecipitation(dominant, precipitation, cloudCover)
             }
 
             DominantWeather.Mist -> {
                 if (rain != Rain.None || snow != Snow.None) {
                     val precipitation = convertRainSnowForTemp(tempC, rain, snow)
-                    getWeatherForPrecipitation(dominant, precipitation, suffix = "and mist")
+                    getWeatherForPrecipitation(dominant, precipitation, cloudCover = cloudCover, suffix = "and mist")
                 } else {
-                    Weather(dominant, description = "Mist")
+                    Weather(dominant, roundedCloudCover = cloudCover, description = "Mist")
                 }
             }
 
             DominantWeather.Fog -> {
                 if (rain != Rain.None || snow != Snow.None) {
                     val precipitation = convertRainSnowForTemp(tempC, rain, snow)
-                    getWeatherForPrecipitation(dominant, precipitation, suffix = "and fog")
+                    getWeatherForPrecipitation(dominant, precipitation, cloudCover = cloudCover, suffix = "and fog")
                 } else {
-                    Weather(dominant, description = "Fog")
+                    Weather(dominant, roundedCloudCover = cloudCover, description = "Fog")
                 }
             }
 
             DominantWeather.Thunderstorm -> {
                 if (rain != Rain.None || snow != Snow.None) {
                     val precipitation = convertRainSnowForTemp(tempC, rain, snow)
-                    getWeatherForPrecipitation(dominant, precipitation, prefix = "Thunderstorm with")
+                    getWeatherForPrecipitation(
+                        dominant,
+                        precipitation,
+                        cloudCover = cloudCover,
+                        prefix = "Thunderstorm with"
+                    )
                 } else {
-                    Weather(dominant, description = "Thunderstorm")
+                    Weather(dominant, roundedCloudCover = cloudCover, description = "Thunderstorm")
                 }
             }
         }
@@ -82,15 +92,6 @@ object AlmanacWeatherGenerator {
         return count >= 4
     }
 
-    fun String.weatherMainToSpecialWeather(): String? {
-        return when (this) {
-            "Mist" -> "Mist"
-            "Fog" -> "Fog"
-            "Thunderstorm" -> "Thunderstorm"
-            else -> null
-        }
-    }
-
     fun Int.cloudCoverToClouds(): String {
         return when (this) {
             25 -> "Passing clouds"
@@ -104,6 +105,7 @@ object AlmanacWeatherGenerator {
     private fun getWeatherForPrecipitation(
         dominant: DominantWeather,
         precipitation: Precipitation,
+        cloudCover: Int,
         prefix: String? = null,
         suffix: String? = null
     ): Weather {
@@ -112,10 +114,10 @@ object AlmanacWeatherGenerator {
             suffix != null -> precipitation.desc + " " + suffix.lowercase()
             else -> precipitation.desc
         }
-        return Weather(dominant, precipitation, description)
+        return Weather(dominant, precipitation, cloudCover, description)
     }
 
-    private fun convertRainSnowForTemp(tempC: Int, rain: Rain, snow: Snow): Precipitation {
+    fun convertRainSnowForTemp(tempC: Int, rain: Rain, snow: Snow): Precipitation {
         return if (tempC <= 0) {
             if (snow != Snow.None) {
                 snow
@@ -163,6 +165,7 @@ object AlmanacWeatherGenerator {
 data class Weather(
     val dominant: DominantWeather,
     val precipitation: Precipitation = None,
+    val roundedCloudCover: Int = 0,
     val description: String
 )
 
@@ -170,7 +173,7 @@ interface Precipitation {
     val desc: String
 }
 
-object None : Precipitation{
+object None : Precipitation {
     override val desc: String = ""
 }
 

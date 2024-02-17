@@ -4,13 +4,15 @@ import almanac.AlmanacWeatherGenerator.DominantWeather
 import almanac.AlmanacWeatherGenerator.generateAlmanacWeather
 import almanac.Prettyfier.celsiusToPrettyString
 import converters.readCsv
+import events.DailyEventsMapper
 import model.*
 import roundToFiveInt
 import java.io.File
 
-class AlmanacMapper(private val moonPhaseCalc: MoonPhaseCalc? = null, private val visibilityConverter: VisibilityConverter, private val startingGroundCover: GroundCover) {
+class AlmanacMapper(private val moonPhaseCalc: MoonPhaseCalc? = null, private val visibilityConverter: VisibilityConverter, startingGroundCover: GroundCover) {
 
     private val groundCoverBucket = GroundCoverBucket(startingGroundCover)
+    private val dailyEventsMapper = DailyEventsMapper(visibilityConverter)
 
     fun makeAlmanac(file: File): List<AlmanacDay> {
         val fileInputStream = file.inputStream()
@@ -18,13 +20,16 @@ class AlmanacMapper(private val moonPhaseCalc: MoonPhaseCalc? = null, private va
         val rawDaysData = chunkToDays(rawHourData)
         return rawDaysData.map { rawDayData ->
             val shifts = rawDayData.map {rawShift -> convertToAlmanac(rawShift) }
+            val collectedRawHoursForDay = rawDayData.night + rawDayData.morning + rawDayData.afternoon + rawDayData.evening
+            val weatherOfDay = shifts.map { it.weatherData }
+            val moonPhases = listOf(shifts.first().moonPhase, shifts.last().moonPhase)
             AlmanacDay(
                 rawDayData.night.hour0.dto.withTimeAtStartOfDay(),
                 shifts[0],
                 shifts[1],
                 shifts[2],
                 shifts[3],
-                ""
+                dailyEventsMapper.mapDay(collectedRawHoursForDay, weatherOfDay, moonPhases)
             )
         }
     }
@@ -40,13 +45,7 @@ class AlmanacMapper(private val moonPhaseCalc: MoonPhaseCalc? = null, private va
 
     fun convertToAlmanac(rawShift: RawWeatherShift): AlmanacShift {
         // Calculate shift
-        val currentShift = when(rawShift.hour0.dto.hourOfDay) {
-            0 -> Shift.NIGHT
-            6 -> Shift.MORNING
-            12 -> Shift.AFTERNOON
-            18 -> Shift.EVENING
-            else -> throw NotImplementedError()
-        }
+        val currentShift = Shift.fromHour(rawShift.hour0.dto.hourOfDay)
 
         // Calculate moonphase
         // Move night / morning shift to previous day, since moons are the moon of "the night of"
@@ -74,7 +73,7 @@ class AlmanacMapper(private val moonPhaseCalc: MoonPhaseCalc? = null, private va
 
         val dominantWeather = DominantWeather(rawShift, roundedTemp)
 
-        val weatherDO = generateAlmanacWeather(roundedTemp, shiftRainAmount, shiftSnowAmount, roundedCover, dominantWeather)
+        val weatherData = generateAlmanacWeather(roundedTemp, shiftRainAmount, shiftSnowAmount, roundedCover, dominantWeather)
 
         // Generate Wind
         val shiftWindSpeed = rawShift.averageShiftHours { it.windSpeed.toDouble() }.toFloat()
@@ -84,10 +83,10 @@ class AlmanacMapper(private val moonPhaseCalc: MoonPhaseCalc? = null, private va
         val windDescription = generateAlmanacWindEntry(windValue)
 
         // Visibility
-        val visibility = visibilityConverter.getVisibility(currentShift, moonPhase.simple, roundedCover, dominantWeather, weatherDO.precipitation)
+        val visibility = visibilityConverter.getVisibility(currentShift, moonPhase.simple, weatherData)
 
         val nvVision = if(currentShift == Shift.EVENING || currentShift == Shift.NIGHT) {
-            visibilityConverter.getVisibilityDay(dominantWeather, weatherDO.precipitation)
+            visibilityConverter.getVisibilityDay(weatherData.dominant, weatherData.precipitation)
         }
         else {
             Visibility.NOT_APPLICABLE
@@ -103,12 +102,14 @@ class AlmanacMapper(private val moonPhaseCalc: MoonPhaseCalc? = null, private va
         return AlmanacShift(
             feltTemp = feltTemp.label,
             temp = tempString,
-            weather = weatherDO.description,
+            weather = weatherData.description,
             cloudCover = "$roundedCover%",
             wind = windDescription,
             ground = groundCoverString,
             visibility = visibility.desc,
-            nightVision = nvVision.desc
+            nightVision = nvVision.desc,
+            moonPhase = moonPhase.simple,
+            weatherData = weatherData
         )
     }
 

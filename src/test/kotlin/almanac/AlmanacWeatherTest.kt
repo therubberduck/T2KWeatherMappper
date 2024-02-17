@@ -11,7 +11,7 @@ class AlmanacWeatherTest {
     fun generateAlmanacWeatherClouds() {
         val dominantWeather = DominantWeather.Clouds
         val cloudCover = 50
-        val expected = Weather(dominantWeather, description = "Scattered clouds")
+        val expected = Weather(dominantWeather, roundedCloudCover = 50, description = "Scattered clouds")
 
         val result = generateAlmanacWeather(0, null, null, cloudCover, dominantWeather)
         assertEquals(expected, result)
