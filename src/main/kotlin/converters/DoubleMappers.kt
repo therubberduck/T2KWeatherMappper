@@ -5,3 +5,7 @@ fun Double.roundUpToFive(): String {
 fun Double.roundToFive(): String {
     return (Math.round(this / 5) * 5).toInt().toString()
 }
+
+fun Double.roundToFiveInt(): Int {
+    return (Math.round(this / 5) * 5).toInt()
+}

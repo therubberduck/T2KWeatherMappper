@@ -13,14 +13,14 @@ class AlmanacWeatherTest {
         val cloudCover = 50
         val expected = Weather(dominantWeather, description = "Scattered clouds")
 
-        val result = generateAlmanacWeather(0.0, null, null, cloudCover, dominantWeather)
+        val result = generateAlmanacWeather(0, null, null, cloudCover, dominantWeather)
         assertEquals(expected, result)
     }
 
     @Test
     fun generateAlmanacWeatherRainDefault() {
         val dominantWeather = DominantWeather.Rain
-        val temp = 5.0
+        val temp = 5
         val rainAmount = 2f
         val expected = Weather(dominantWeather, Rain.Moderate, description = "Moderate rain")
 
@@ -31,7 +31,7 @@ class AlmanacWeatherTest {
     @Test
     fun generateAlmanacWeatherRainFlipped() {
         val dominantWeather = DominantWeather.Rain
-        val temp = 5.0
+        val temp = 5
         val snowAmount = 0.5f
         val expected = Weather(dominantWeather, Rain.Light, description = "Light rain")
 
@@ -42,7 +42,7 @@ class AlmanacWeatherTest {
     @Test
     fun generateAlmanacWeatherSnowDefault() {
         val dominantWeather = DominantWeather.Snow
-        val temp = -5.0
+        val temp = -5
         val snowAmount = 0.5f
         val expected = Weather(dominantWeather, Snow.Light, description = "Light snow")
 
@@ -53,7 +53,7 @@ class AlmanacWeatherTest {
     @Test
     fun generateAlmanacWeatherSnowFlipped() {
         val dominantWeather = DominantWeather.Snow
-        val temp = -5.0
+        val temp = -5
         val rainAmount = 2f
         val expected = Weather(dominantWeather, Snow.Moderate, description = "Snow")
 
@@ -66,7 +66,7 @@ class AlmanacWeatherTest {
         val dominantWeather = DominantWeather.Mist
         val expected = Weather(dominantWeather, description = "Mist")
 
-        val result = generateAlmanacWeather(0.0, null, null, 0, dominantWeather)
+        val result = generateAlmanacWeather(0, null, null, 0, dominantWeather)
         assertEquals(expected, result)
     }
 
@@ -75,7 +75,7 @@ class AlmanacWeatherTest {
         val dominantWeather = DominantWeather.Fog
         val expected = Weather(dominantWeather, description = "Fog")
 
-        val result = generateAlmanacWeather(0.0, null, null, 0, dominantWeather)
+        val result = generateAlmanacWeather(0, null, null, 0, dominantWeather)
         assertEquals(expected, result)
     }
 
@@ -84,14 +84,14 @@ class AlmanacWeatherTest {
         val dominantWeather = DominantWeather.Thunderstorm
         val expected = Weather(dominantWeather, description = "Thunderstorm")
 
-        val result = generateAlmanacWeather(0.0, null, null, 0, dominantWeather)
+        val result = generateAlmanacWeather(0, null, null, 0, dominantWeather)
         assertEquals(expected, result)
     }
 
     @Test
     fun generateAlmanacWeatherFogAndRain() {
         val dominantWeather = DominantWeather.Fog
-        val temp = 5.0
+        val temp = 5
         val rainAmount = 0.5f
         val expected = Weather(dominantWeather, Rain.Light, description = "Light rain and fog")
 
@@ -102,7 +102,7 @@ class AlmanacWeatherTest {
     @Test
     fun generateAlmanacWeatherThunderstormAndRain() {
         val dominantWeather = DominantWeather.Thunderstorm
-        val temp = 5.0
+        val temp = 5
         val rainAmount = 0.5f
         val expected = Weather(dominantWeather, Rain.Light, description = "Thunderstorm with light rain")
 

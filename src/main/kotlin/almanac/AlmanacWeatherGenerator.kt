@@ -4,7 +4,7 @@ import model.RawWeatherShift
 
 object AlmanacWeatherGenerator {
     fun generateAlmanacWeather(
-        tempC: Double,
+        tempC: Int,
         rainAmount: Float?,
         snowAmount: Float?,
         cloudCover: Int,
@@ -50,11 +50,11 @@ object AlmanacWeatherGenerator {
         }
     }
 
-    fun DominantWeather(rawWeatherShift: RawWeatherShift, shiftTemp: Double): DominantWeather {
+    fun DominantWeather(rawWeatherShift: RawWeatherShift, shiftTemp: Int): DominantWeather {
         return when {
             rawWeatherShift.fourPlusMatchesMainTag(DominantWeather.Thunderstorm.mainTag) -> DominantWeather.Thunderstorm
             rawWeatherShift.fourPlusMatchesMainTag(DominantWeather.Snow.mainTag) -> {
-                if (shiftTemp > 0.0) {
+                if (shiftTemp > 0) {
                     DominantWeather.Rain
                 } else {
                     DominantWeather.Snow
@@ -62,7 +62,7 @@ object AlmanacWeatherGenerator {
             }
 
             rawWeatherShift.fourPlusMatchesMainTag(DominantWeather.Rain.mainTag) -> {
-                if (shiftTemp > 0.0) {
+                if (shiftTemp > 0) {
                     DominantWeather.Rain
                 } else {
                     DominantWeather.Snow
@@ -101,7 +101,7 @@ object AlmanacWeatherGenerator {
         }
     }
 
-    fun getWeatherForPrecipitation(
+    private fun getWeatherForPrecipitation(
         dominant: DominantWeather,
         precipitation: Precipitation,
         prefix: String? = null,
@@ -115,7 +115,7 @@ object AlmanacWeatherGenerator {
         return Weather(dominant, precipitation, description)
     }
 
-    fun convertRainSnowForTemp(tempC: Double, rain: Rain, snow: Snow): Precipitation {
+    private fun convertRainSnowForTemp(tempC: Int, rain: Rain, snow: Snow): Precipitation {
         return if (tempC <= 0) {
             if (snow != Snow.None) {
                 snow

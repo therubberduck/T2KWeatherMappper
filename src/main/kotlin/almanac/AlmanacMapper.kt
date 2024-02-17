@@ -5,6 +5,7 @@ import almanac.AlmanacWeatherGenerator.generateAlmanacWeather
 import almanac.Prettyfier.celsiusToPrettyString
 import converters.readCsv
 import model.*
+import roundToFiveInt
 import java.io.File
 
 class AlmanacMapper(private val moonPhaseCalc: MoonPhaseCalc? = null, private val visibilityConverter: VisibilityConverter, private val startingGroundCover: GroundCover) {
@@ -55,6 +56,7 @@ class AlmanacMapper(private val moonPhaseCalc: MoonPhaseCalc? = null, private va
         // Generate Temperature
         val shiftTemp = rawShift.averageShiftHours { it.tempK.toDouble() }.reduceTempForNuclearWinter(rawShift.hour0.dto).KelvinToCelsius()
         val tempString = shiftTemp.celsiusToPrettyString()
+        val roundedTemp = shiftTemp.roundToFiveInt()
 
         val shiftWind = rawShift.averageShiftHours { it.windSpeed.toDouble() }.toFloat()
         val shiftHumidity = rawShift.averageShiftHours { it.humidity.toDouble() }.toInt()
@@ -70,9 +72,9 @@ class AlmanacMapper(private val moonPhaseCalc: MoonPhaseCalc? = null, private va
         val shiftRainAmount = rawShift.averageShiftHours { it.rain1h?.toDouble() }.zeroEqualsNull()
         val shiftSnowAmount = rawShift.averageShiftHours { it.snow1h?.toDouble() }.zeroEqualsNull()
 
-        val dominantWeather = DominantWeather(rawShift, shiftTemp)
+        val dominantWeather = DominantWeather(rawShift, roundedTemp)
 
-        val weatherDO = generateAlmanacWeather(shiftTemp, shiftRainAmount, shiftSnowAmount, roundedCover, dominantWeather)
+        val weatherDO = generateAlmanacWeather(roundedTemp, shiftRainAmount, shiftSnowAmount, roundedCover, dominantWeather)
 
         // Generate Wind
         val shiftWindSpeed = rawShift.averageShiftHours { it.windSpeed.toDouble() }.toFloat()

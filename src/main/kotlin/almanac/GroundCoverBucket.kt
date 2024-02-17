@@ -1,6 +1,7 @@
 package almanac
 
 import model.GroundCover
+import roundToFiveInt
 import java.lang.Float.min
 import kotlin.math.ceil
 import kotlin.math.max
@@ -47,7 +48,7 @@ class GroundCoverBucket(startingGroundCover: GroundCover) {
             false
         }
         else {
-            tempC <= 0
+            roundedTemp <= 0
         }
 
         val newGroundCover = GroundCover(
@@ -150,10 +151,6 @@ class GroundCoverBucket(startingGroundCover: GroundCover) {
                 frozenGround = frozenGroundAdjustment
             )
         }
-    }
-
-    private fun Double.roundToFiveInt(): Int {
-        return (Math.round(this / 5) * 5).toInt()
     }
 
     private fun snowToMud(roundedTemp: Int): Int {
