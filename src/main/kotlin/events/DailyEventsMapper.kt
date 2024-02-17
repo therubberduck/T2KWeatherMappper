@@ -15,6 +15,7 @@ class DailyEventsMapper(
     fun mapDay(
         rawHours: List<RawWeatherHour>,
         shiftWeather: List<Weather>,
+        shiftWind: List<WindSpeed>,
         moonPhases: List<MoonPhase>
     ): String {
         if (rawHours.size != 24) {
@@ -22,12 +23,11 @@ class DailyEventsMapper(
         }
 
         val mappedHours = rawHours.mapIndexed { index, rawWeatherHour -> mapHour(rawWeatherHour, index) }
-        val events = collectEvents(mappedHours, shiftWeather, moonPhases)
-        val eventDescriptions = events.map { mapEventCollectionToDescription(it) }
-        return if(eventDescriptions.isNotEmpty()) {
+        val events = collectEvents(mappedHours, shiftWeather, shiftWind, moonPhases)
+        val eventDescriptions = events.map { mapEventToDescription(it) }
+        return if (eventDescriptions.isNotEmpty()) {
             eventDescriptions.joinToString(", ")
-        }
-        else {
+        } else {
             "No weather events"
         }
     }
@@ -39,29 +39,43 @@ class DailyEventsMapper(
         val precipitation = if (rain != Rain.None || snow != Snow.None) {
             AlmanacWeatherGenerator.convertRainSnowForTemp(tempC, rain, snow)
         } else {
-            Rain.None
+            None
         }
-        return WeatherEventHour(index, mapDominantWeather(rawHour, tempC), precipitation)
+        val wind = generateWindSpeed(rawHour.windSpeed)
+        return WeatherEventHour(index, mapDominantWeather(rawHour, tempC), precipitation, wind)
     }
 
-    fun collectEvents(eventHours: List<WeatherEventHour>, shiftWeather: List<Weather>, moonPhases: List<MoonPhase>): List<WeatherEvent> {
+    fun collectEvents(
+        eventHours: List<WeatherEventHour>,
+        shiftWeather: List<Weather>,
+        shiftWind: List<WindSpeed>,
+        moonPhases: List<MoonPhase>
+    ): List<WeatherEvent> {
         // Gather the events
         val events = mutableListOf<WeatherEvent>()
         for (eventHour in eventHours) {
-            if (eventHour.weather != DominantWeather.Clouds) {
+            val windOfShift = shiftWind.fromHour(eventHour.hour)
+            val windOfShiftIsSignificant = windOfShift.strength < eventHour.wind.strength && eventHour.wind.strength > 1
+            if (eventHour.weather != DominantWeather.Clouds || windOfShiftIsSignificant) {
                 if (events.lastOrNull() != null &&
                     eventHour.hour != 6 && eventHour.hour != 12 && eventHour.hour != 18 && // Beginning a new shift (with new visibility)
                     events.last().end == eventHour.hour - 1 && // Previous eventHour needs to be the same as the event we are looking at
-                    events.last().weather == eventHour.weather && events.last().precipitation == eventHour.precipitation // Weather needs to be the same
+                    events.last().weather == eventHour.weather && events.last().precipitation == eventHour.precipitation && // Weather needs to be the same
+                    events.last().wind == eventHour.wind // Wind needs to be the same
                 ) {
                     events.last().end = eventHour.hour
                 } else {
                     val weatherOfShift = shiftWeather.fromHour(eventHour.hour)
-                    val moonPhase = if(eventHour.hour < 12) {
+                    val moonPhase = if (eventHour.hour < 12) {
                         moonPhases[0]
+                    } else {
+                        moonPhases[1]
+                    }
+                    val wind = if(windOfShiftIsSignificant) {
+                        eventHour.wind
                     }
                     else {
-                        moonPhases[1]
+                        WindSpeed.CalmL
                     }
                     events.add(
                         WeatherEvent(
@@ -69,6 +83,8 @@ class DailyEventsMapper(
                             eventHour.hour,
                             eventHour.weather,
                             eventHour.precipitation,
+                            wind,
+                            windOfShiftIsSignificant,
                             visibilityConverter.getVisibility(
                                 Shift.fromHour(eventHour.hour),
                                 moonPhase,
@@ -87,7 +103,8 @@ class DailyEventsMapper(
         for (event in events) {
             val weatherOfShift = shiftWeather.fromHour(event.start)
             if ((weatherOfShift.dominant != event.weather ||
-                weatherOfShift.precipitation != event.precipitation) //&&
+                        weatherOfShift.precipitation != event.precipitation ||
+                    event.windOfShiftIsSignificant) //&&
 //                event.isSignificantEvent()
             ) {
                 finalEvents.add(event)
@@ -106,30 +123,53 @@ class DailyEventsMapper(
         }
     }
 
+    private fun List<WindSpeed>.fromHour(hour: Int): WindSpeed {
+        return when {
+            (hour <= 5) -> this[0]
+            (hour <= 11) -> this[1]
+            (hour <= 17) -> this[2]
+            else -> this[3]
+        }
+    }
+
     private fun WeatherEvent.isSignificantEvent(): Boolean {
-        return if(
+        return if (
             (this.precipitation == Rain.Light || this.precipitation == Snow.Light) &&
             this.start == this.end
         ) {
             false
-        }
-        else {
+        } else {
             true
         }
     }
 
-    fun mapEventCollectionToDescription(eventCollection: WeatherEvent): String {
-        val startTime = String.format("%02d", eventCollection.start)
-        val endTime = String.format("%02d", eventCollection.end + 1)
+    fun mapEventToDescription(event: WeatherEvent): String {
+        val startTime = String.format("%02d", event.start)
+        val endTime = String.format("%02d", event.end + 1)
 
-        val visibility = if(eventCollection.visibility != Visibility.CLEAR) {
-            " (${eventCollection.visibility.desc})"
-        }
-        else {
+        val weather =
+            if (event.precipitation != None || (event.weather != DominantWeather.Clouds && event.weather != DominantWeather.Rain && event.weather != DominantWeather.Snow)) {
+                AlmanacWeatherGenerator.generateDescription(event.weather, event.precipitation, 0).description
+            } else {
+                ""
+            }
+
+        val visibility = if (weather.isNotEmpty() && event.visibility != Visibility.CLEAR) {
+            " (${event.visibility.desc})"
+        } else {
             ""
         }
 
-        return "$startTime:00-$endTime:00: ${eventCollection.precipitation.desc}$visibility"
+        var wind = if (event.wind != WindSpeed.CalmL) {
+            event.wind.desc
+        } else {
+            ""
+        }
+        if (wind.isNotEmpty() && weather.isNotEmpty()) {
+            wind = ", $wind"
+        }
+
+        return "$startTime:00-$endTime:00: $weather$visibility$wind"
     }
 
     private fun mapDominantWeather(rawHour: RawWeatherHour, temp: Int): DominantWeather {
@@ -140,6 +180,7 @@ class DailyEventsMapper(
             } else {
                 DominantWeather.Snow
             }
+
             DominantWeather.Fog.mainTag -> DominantWeather.Fog
             DominantWeather.Mist.mainTag -> DominantWeather.Mist
             else -> DominantWeather.Clouds
@@ -164,13 +205,20 @@ class DailyEventsMapper(
         }
     }
 
-    data class WeatherEventHour(val hour: Int, val weather: DominantWeather, val precipitation: Precipitation)
+    data class WeatherEventHour(
+        val hour: Int,
+        val weather: DominantWeather,
+        val precipitation: Precipitation,
+        val wind: WindSpeed
+    )
 
     data class WeatherEvent(
         val start: Int,
         var end: Int,
         val weather: DominantWeather,
         val precipitation: Precipitation,
+        val wind: WindSpeed,
+        val windOfShiftIsSignificant: Boolean,
         val visibility: Visibility
     )
 }

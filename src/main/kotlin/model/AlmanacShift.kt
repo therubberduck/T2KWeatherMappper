@@ -1,6 +1,7 @@
 package model
 
 import almanac.Weather
+import almanac.WindSpeed
 
 data class AlmanacShift(
     val feltTemp: String,
@@ -12,5 +13,6 @@ data class AlmanacShift(
     val visibility: String,
     val nightVision: String,
     val moonPhase: MoonPhase,
-    val weatherData: Weather
+    val weatherData: Weather,
+    val windData: WindSpeed,
 )

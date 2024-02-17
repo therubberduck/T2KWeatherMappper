@@ -4,31 +4,33 @@ import model.RawWeatherShift
 
 object AlmanacWeatherGenerator {
     fun generateAlmanacWeather(
-        tempC: Int,
-        rainAmount: Float?,
-        snowAmount: Float?,
-        cloudCover: Int,
-        dominant: DominantWeather
+        tempC: Int, rainAmount: Float?, snowAmount: Float?, cloudCover: Int, dominant: DominantWeather
     ): Weather {
         val rain = rainAmount.toRain()
         val snow = snowAmount.toSnow()
 
+        return if (rain != Rain.None || snow != Snow.None) {
+            val precipitation = convertRainSnowForTemp(tempC, rain, snow)
+            generateDescription(dominant, precipitation, cloudCover)
+        } else {
+            generateDescription(dominant, None, cloudCover)
+        }
+    }
+
+    fun generateDescription(dominant: DominantWeather, precipitation: Precipitation, cloudCover: Int): Weather {
+        val hasPrecipitation = precipitation != None
+
         return when (dominant) {
             DominantWeather.Clouds -> Weather(
-                dominant,
-                roundedCloudCover = cloudCover,
-                description = cloudCover.cloudCoverToClouds()
+                dominant, roundedCloudCover = cloudCover, description = cloudCover.cloudCoverToClouds()
             )
 
-            DominantWeather.Rain,
-            DominantWeather.Snow -> {
-                val precipitation = convertRainSnowForTemp(tempC, rain, snow)
+            DominantWeather.Rain, DominantWeather.Snow -> {
                 getWeatherForPrecipitation(dominant, precipitation, cloudCover)
             }
 
             DominantWeather.Mist -> {
-                if (rain != Rain.None || snow != Snow.None) {
-                    val precipitation = convertRainSnowForTemp(tempC, rain, snow)
+                if (hasPrecipitation) {
                     getWeatherForPrecipitation(dominant, precipitation, cloudCover = cloudCover, suffix = "and mist")
                 } else {
                     Weather(dominant, roundedCloudCover = cloudCover, description = "Mist")
@@ -36,8 +38,7 @@ object AlmanacWeatherGenerator {
             }
 
             DominantWeather.Fog -> {
-                if (rain != Rain.None || snow != Snow.None) {
-                    val precipitation = convertRainSnowForTemp(tempC, rain, snow)
+                if (hasPrecipitation) {
                     getWeatherForPrecipitation(dominant, precipitation, cloudCover = cloudCover, suffix = "and fog")
                 } else {
                     Weather(dominant, roundedCloudCover = cloudCover, description = "Fog")
@@ -45,13 +46,9 @@ object AlmanacWeatherGenerator {
             }
 
             DominantWeather.Thunderstorm -> {
-                if (rain != Rain.None || snow != Snow.None) {
-                    val precipitation = convertRainSnowForTemp(tempC, rain, snow)
+                if (hasPrecipitation) {
                     getWeatherForPrecipitation(
-                        dominant,
-                        precipitation,
-                        cloudCover = cloudCover,
-                        prefix = "Thunderstorm with"
+                        dominant, precipitation, cloudCover = cloudCover, prefix = "Thunderstorm with"
                     )
                 } else {
                     Weather(dominant, roundedCloudCover = cloudCover, description = "Thunderstorm")
@@ -178,24 +175,13 @@ object None : Precipitation {
 }
 
 enum class Rain(override val desc: String) : Precipitation {
-    None(""),
-    Light("Light rain"),
-    Moderate("Moderate rain"),
-    Heavy("Heavy rain")
+    None(""), Light("Light rain"), Moderate("Moderate rain"), Heavy("Heavy rain")
 }
 
 enum class Snow(override val desc: String) : Precipitation {
-    None(""),
-    Light("Light snow"),
-    Moderate("Snow"),
-    Heavy("Heavy snow")
+    None(""), Light("Light snow"), Moderate("Snow"), Heavy("Heavy snow")
 }
 
 enum class DominantWeather(val mainTag: String) {
-    Clouds("Clouds"),
-    Rain("Rain"),
-    Snow("Snow"),
-    Mist("Mist"),
-    Fog("Fog"),
-    Thunderstorm("Thunderstorm")
+    Clouds("Clouds"), Rain("Rain"), Snow("Snow"), Mist("Mist"), Fog("Fog"), Thunderstorm("Thunderstorm")
 }

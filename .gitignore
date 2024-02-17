@@ -47,3 +47,5 @@ output.csv
 output99.csv
 
 *.csv#
+
+*.ods

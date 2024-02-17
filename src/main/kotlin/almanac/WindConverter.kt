@@ -1,10 +1,9 @@
 package almanac
 
 fun generateAlmanacWindEntry(wind: Wind): String {
-    return if(wind.speed == WindSpeed.CalmL) {
+    return if (wind.speed == WindSpeed.CalmL) {
         wind.speed.desc
-    }
-    else {
+    } else {
         wind.speed.desc + " " + wind.dir.desc
     }
 }
@@ -47,20 +46,20 @@ fun generateWindDir(rawWindDirection: Int): WindDir {
 
 data class Wind(val speed: WindSpeed, val dir: WindDir)
 
-enum class WindSpeed(val desc: String) {
-    CalmL("Calmˡ"),
-    CalmS("Calmˢ"),
-    LightBreezeL("Light Breezeˡ"),
-    LightBreezeS("Light Breezeˢ"),
-    FreshBreezeL("Fresh Breezeˡ"),
-    FreshBreezeS("Fresh Breezeˢ"),
-    StrongBreezeL("Strong Breezeˡ"),
-    StrongBreezeS("Strong Breezeˢ"),
-    GaleL("Galeˡ"),
-    GaleS("Galeˢ"),
-    StormL("Stormˡ"),
-    StormS("Stormˢ"),
-    Hurricane("Hurricane"),
+enum class WindSpeed(val desc: String, val strength: Int) {
+    CalmL("Calmˡ", 0),
+    CalmS("Calmˢ", 1),
+    LightBreezeL("Light Breezeˡ", 2),
+    LightBreezeS("Light Breezeˢ", 3),
+    FreshBreezeL("Fresh Breezeˡ", 4),
+    FreshBreezeS("Fresh Breezeˢ", 5),
+    StrongBreezeL("Strong Breezeˡ", 6),
+    StrongBreezeS("Strong Breezeˢ", 7),
+    GaleL("Galeˡ", 8),
+    GaleS("Galeˢ", 9),
+    StormL("Stormˡ", 10),
+    StormS("Stormˢ", 11),
+    Hurricane("Hurricane", 12),
 }
 
 enum class WindDir(val desc: String) {
