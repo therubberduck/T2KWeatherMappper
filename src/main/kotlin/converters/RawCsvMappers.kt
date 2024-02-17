@@ -3,12 +3,9 @@ package converters
 import model.AlmanacDay
 import model.RawWeatherHour
 import org.joda.time.DateTime
-import org.joda.time.format.DateTimeFormat
-import org.joda.time.format.DateTimeFormatter
 import org.joda.time.format.ISODateTimeFormat
 import java.io.File
 import java.io.InputStream
-import java.io.OutputStream
 
 fun readCsv(inputStream: InputStream): List<RawWeatherHour> {
     val reader = inputStream.bufferedReader()
@@ -55,17 +52,14 @@ fun writeCsv(almanac: List<AlmanacDay>, outputFile: File) {
         writer.newLine()
         writer.write("$date,Evening,${day.evening.feltTemp},${day.evening.temp},${day.evening.weather},${day.evening.cloudCover},${day.evening.wind},${day.evening.ground},${day.evening.visibility},${day.evening.nightVision}")
         writer.newLine()
+        writer.write(",\"${day.events}\"")
+        writer.newLine()
     }
     writer.close()
     println("Almanac saved to ${outputFile.name}")
 }
 
-val dateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss +xxxx 'UTC'")
-
 private fun convertCsvStringToDateTime(textDate: String): DateTime {
-//    val adjustedDateString = textDate.dropLast(10).replaceRange(10, 11, "T")
-//    return DateTime.parse(adjustedDateString)
-//    return DateTime.parse(textDate, dateTimeFormatter)
     val adjustedDateString = textDate.dropLast(10).replaceRange(10, 11, "T") + ".000Z"
     return ISODateTimeFormat.dateTime().withZoneUTC().parseDateTime(adjustedDateString)
 }

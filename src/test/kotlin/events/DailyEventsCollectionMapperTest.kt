@@ -1,9 +1,8 @@
 package events
 
 import almanac.*
-import events.DailyEventsMapper.WeatherEventCollection
+import events.DailyEventsMapper.WeatherEvent
 import events.DailyEventsMapper.WeatherEventHour
-import mock.MockRandom
 import mock.MockVisibilityConverter
 import model.MoonPhase
 import org.junit.jupiter.api.Test
@@ -24,9 +23,9 @@ class DailyEventsCollectionMapperTest {
         val eventHours = hourList(
             6,
             listOf(
-                hour(6, weather = DominantWeather.Rain, precipitation = Rain.Light),
-                hour(7, weather = DominantWeather.Rain, precipitation = Rain.Light),
-                hour(8, weather = DominantWeather.Rain, precipitation = Rain.Light)
+                eventHour(6, weather = DominantWeather.Rain, precipitation = Rain.Light),
+                eventHour(7, weather = DominantWeather.Rain, precipitation = Rain.Light),
+                eventHour(8, weather = DominantWeather.Rain, precipitation = Rain.Light)
             )
         )
         val shiftWeather = listOf(
@@ -35,8 +34,8 @@ class DailyEventsCollectionMapperTest {
             Weather(DominantWeather.Clouds, description = ""),
             Weather(DominantWeather.Clouds, description = ""),
         )
-        val expected = listOf<WeatherEventCollection>(
-            WeatherEventCollection(6,8, DominantWeather.Rain, Rain.Light, Visibility.CLEAR)
+        val expected = listOf(
+            WeatherEvent(6,8, DominantWeather.Rain, Rain.Light, Visibility.CLEAR)
         )
 
         val result = mapper.collectEvents(eventHours, shiftWeather, listOf(MoonPhase.FULL, MoonPhase.FULL))
@@ -49,9 +48,9 @@ class DailyEventsCollectionMapperTest {
         val eventHours = hourList(
             6,
             listOf(
-                hour(6, weather = DominantWeather.Snow, precipitation = Snow.Light),
-                hour(7, weather = DominantWeather.Snow, precipitation = Snow.Light),
-                hour(8, weather = DominantWeather.Snow, precipitation = Snow.Light)
+                eventHour(6, weather = DominantWeather.Snow, precipitation = Snow.Light),
+                eventHour(7, weather = DominantWeather.Snow, precipitation = Snow.Light),
+                eventHour(8, weather = DominantWeather.Snow, precipitation = Snow.Light)
             )
         )
         val shiftWeather = listOf(
@@ -60,8 +59,8 @@ class DailyEventsCollectionMapperTest {
             Weather(DominantWeather.Clouds, description = ""),
             Weather(DominantWeather.Clouds, description = ""),
         )
-        val expected = listOf<WeatherEventCollection>(
-            WeatherEventCollection(6,8, DominantWeather.Snow, Snow.Light, Visibility.CLEAR)
+        val expected = listOf(
+            WeatherEvent(6,8, DominantWeather.Snow, Snow.Light, Visibility.CLEAR)
         )
 
         val result = mapper.collectEvents(eventHours, shiftWeather, listOf(MoonPhase.FULL, MoonPhase.FULL))
@@ -74,9 +73,9 @@ class DailyEventsCollectionMapperTest {
         val eventHours = hourList(
             6,
             listOf(
-                hour(6, weather = DominantWeather.Mist, precipitation = Rain.None),
-                hour(7, weather = DominantWeather.Mist, precipitation = Rain.None),
-                hour(8, weather = DominantWeather.Mist, precipitation = Rain.None)
+                eventHour(6, weather = DominantWeather.Mist, precipitation = Rain.None),
+                eventHour(7, weather = DominantWeather.Mist, precipitation = Rain.None),
+                eventHour(8, weather = DominantWeather.Mist, precipitation = Rain.None)
             )
         )
         val shiftWeather = listOf(
@@ -85,8 +84,8 @@ class DailyEventsCollectionMapperTest {
             Weather(DominantWeather.Clouds, description = ""),
             Weather(DominantWeather.Clouds, description = ""),
         )
-        val expected = listOf<WeatherEventCollection>(
-            WeatherEventCollection(6,8, DominantWeather.Mist, Rain.None, Visibility.CLEAR)
+        val expected = listOf(
+            WeatherEvent(6,8, DominantWeather.Mist, Rain.None, Visibility.CLEAR)
         )
 
         val result = mapper.collectEvents(eventHours, shiftWeather, listOf(MoonPhase.FULL, MoonPhase.FULL))
@@ -99,9 +98,9 @@ class DailyEventsCollectionMapperTest {
         val eventHours = hourList(
             6,
             listOf(
-                hour(6, weather = DominantWeather.Fog, precipitation = Rain.None),
-                hour(7, weather = DominantWeather.Fog, precipitation = Rain.None),
-                hour(8, weather = DominantWeather.Fog, precipitation = Rain.None)
+                eventHour(6, weather = DominantWeather.Fog, precipitation = Rain.None),
+                eventHour(7, weather = DominantWeather.Fog, precipitation = Rain.None),
+                eventHour(8, weather = DominantWeather.Fog, precipitation = Rain.None)
             )
         )
         val shiftWeather = listOf(
@@ -110,8 +109,8 @@ class DailyEventsCollectionMapperTest {
             Weather(DominantWeather.Clouds, description = ""),
             Weather(DominantWeather.Clouds, description = ""),
         )
-        val expected = listOf<WeatherEventCollection>(
-            WeatherEventCollection(6,8, DominantWeather.Fog, Rain.None, Visibility.CLEAR)
+        val expected = listOf(
+            WeatherEvent(6,8, DominantWeather.Fog, Rain.None, Visibility.CLEAR)
         )
 
         val result = mapper.collectEvents(eventHours, shiftWeather, listOf(MoonPhase.FULL, MoonPhase.FULL))
@@ -124,9 +123,9 @@ class DailyEventsCollectionMapperTest {
         val eventHours = hourList(
             6,
             listOf(
-                hour(6, weather = DominantWeather.Thunderstorm, precipitation = Rain.None),
-                hour(7, weather = DominantWeather.Thunderstorm, precipitation = Rain.None),
-                hour(8, weather = DominantWeather.Thunderstorm, precipitation = Rain.None)
+                eventHour(6, weather = DominantWeather.Thunderstorm, precipitation = Rain.None),
+                eventHour(7, weather = DominantWeather.Thunderstorm, precipitation = Rain.None),
+                eventHour(8, weather = DominantWeather.Thunderstorm, precipitation = Rain.None)
             )
         )
         val shiftWeather = listOf(
@@ -135,8 +134,8 @@ class DailyEventsCollectionMapperTest {
             Weather(DominantWeather.Clouds, description = ""),
             Weather(DominantWeather.Clouds, description = ""),
         )
-        val expected = listOf<WeatherEventCollection>(
-            WeatherEventCollection(6,8, DominantWeather.Thunderstorm, Rain.None, Visibility.CLEAR)
+        val expected = listOf(
+            WeatherEvent(6,8, DominantWeather.Thunderstorm, Rain.None, Visibility.CLEAR)
         )
 
         val result = mapper.collectEvents(eventHours, shiftWeather, listOf(MoonPhase.FULL, MoonPhase.FULL))
@@ -149,8 +148,8 @@ class DailyEventsCollectionMapperTest {
         val eventHours = hourList(
             6,
             listOf(
-                hour(6, weather = DominantWeather.Mist, precipitation = Rain.Light),
-                hour(7, weather = DominantWeather.Mist, precipitation = Rain.Light)
+                eventHour(6, weather = DominantWeather.Mist, precipitation = Rain.Light),
+                eventHour(7, weather = DominantWeather.Mist, precipitation = Rain.Light)
             )
         )
         val shiftWeather = listOf(
@@ -159,8 +158,8 @@ class DailyEventsCollectionMapperTest {
             Weather(DominantWeather.Clouds, description = ""),
             Weather(DominantWeather.Clouds, description = ""),
         )
-        val expected = listOf<WeatherEventCollection>(
-            WeatherEventCollection(6,7, DominantWeather.Mist, Rain.Light, Visibility.CLEAR)
+        val expected = listOf(
+            WeatherEvent(6,7, DominantWeather.Mist, Rain.Light, Visibility.CLEAR)
         )
 
         val result = mapper.collectEvents(eventHours, shiftWeather, listOf(MoonPhase.FULL, MoonPhase.FULL))
@@ -173,9 +172,9 @@ class DailyEventsCollectionMapperTest {
         val eventHours = hourList(
             6,
             listOf(
-                hour(6, weather = DominantWeather.Fog, precipitation = Snow.Light),
-                hour(7, weather = DominantWeather.Fog, precipitation = Snow.Light),
-                hour(8, weather = DominantWeather.Fog, precipitation = Snow.Light)
+                eventHour(6, weather = DominantWeather.Fog, precipitation = Snow.Light),
+                eventHour(7, weather = DominantWeather.Fog, precipitation = Snow.Light),
+                eventHour(8, weather = DominantWeather.Fog, precipitation = Snow.Light)
             )
         )
         val shiftWeather = listOf(
@@ -184,8 +183,8 @@ class DailyEventsCollectionMapperTest {
             Weather(DominantWeather.Clouds, description = ""),
             Weather(DominantWeather.Clouds, description = ""),
         )
-        val expected = listOf<WeatherEventCollection>(
-            WeatherEventCollection(6,8, DominantWeather.Fog, Snow.Light, Visibility.CLEAR)
+        val expected = listOf(
+            WeatherEvent(6,8, DominantWeather.Fog, Snow.Light, Visibility.CLEAR)
         )
 
         val result = mapper.collectEvents(eventHours, shiftWeather, listOf(MoonPhase.FULL, MoonPhase.FULL))
@@ -198,9 +197,9 @@ class DailyEventsCollectionMapperTest {
         val eventHours = hourList(
             6,
             listOf(
-                hour(6, weather = DominantWeather.Thunderstorm, precipitation = Rain.Moderate),
-                hour(7, weather = DominantWeather.Thunderstorm, precipitation = Rain.Moderate),
-                hour(8, weather = DominantWeather.Thunderstorm, precipitation = Rain.Moderate)
+                eventHour(6, weather = DominantWeather.Thunderstorm, precipitation = Rain.Moderate),
+                eventHour(7, weather = DominantWeather.Thunderstorm, precipitation = Rain.Moderate),
+                eventHour(8, weather = DominantWeather.Thunderstorm, precipitation = Rain.Moderate)
             )
         )
         val shiftWeather = listOf(
@@ -209,8 +208,8 @@ class DailyEventsCollectionMapperTest {
             Weather(DominantWeather.Clouds, description = ""),
             Weather(DominantWeather.Clouds, description = ""),
         )
-        val expected = listOf<WeatherEventCollection>(
-            WeatherEventCollection(6,8, DominantWeather.Thunderstorm, Rain.Moderate, Visibility.CLEAR)
+        val expected = listOf(
+            WeatherEvent(6,8, DominantWeather.Thunderstorm, Rain.Moderate, Visibility.CLEAR)
         )
 
         val result = mapper.collectEvents(eventHours, shiftWeather, listOf(MoonPhase.FULL, MoonPhase.FULL))
@@ -223,9 +222,9 @@ class DailyEventsCollectionMapperTest {
         val eventHours = hourList(
             5,
             listOf(
-                hour(5, weather = DominantWeather.Rain, precipitation = Rain.Light),
-                hour(6, weather = DominantWeather.Rain, precipitation = Rain.Light),
-                hour(7, weather = DominantWeather.Rain, precipitation = Rain.Light)
+                eventHour(5, weather = DominantWeather.Rain, precipitation = Rain.Light),
+                eventHour(6, weather = DominantWeather.Rain, precipitation = Rain.Light),
+                eventHour(7, weather = DominantWeather.Rain, precipitation = Rain.Light)
             )
         )
         val shiftWeather = listOf(
@@ -234,8 +233,8 @@ class DailyEventsCollectionMapperTest {
             Weather(DominantWeather.Clouds, description = ""),
             Weather(DominantWeather.Clouds, description = ""),
         )
-        val expected = listOf<WeatherEventCollection>(
-            WeatherEventCollection(6,7, DominantWeather.Rain, Rain.Light, Visibility.CLEAR)
+        val expected = listOf(
+            WeatherEvent(6,7, DominantWeather.Rain, Rain.Light, Visibility.CLEAR)
         )
 
         val result = mapper.collectEvents(eventHours, shiftWeather, listOf(MoonPhase.FULL, MoonPhase.FULL))
@@ -248,9 +247,9 @@ class DailyEventsCollectionMapperTest {
         val eventHours = hourList(
             5,
             listOf(
-                hour(5, weather = DominantWeather.Rain, precipitation = Rain.Light),
-                hour(6, weather = DominantWeather.Rain, precipitation = Rain.Light),
-                hour(7, weather = DominantWeather.Rain, precipitation = Rain.Light)
+                eventHour(5, weather = DominantWeather.Rain, precipitation = Rain.Light),
+                eventHour(6, weather = DominantWeather.Rain, precipitation = Rain.Light),
+                eventHour(7, weather = DominantWeather.Rain, precipitation = Rain.Light)
             )
         )
         val shiftWeather = listOf(
@@ -259,7 +258,7 @@ class DailyEventsCollectionMapperTest {
             Weather(DominantWeather.Clouds, description = ""),
             Weather(DominantWeather.Clouds, description = ""),
         )
-        val expected = emptyList<WeatherEventCollection>()
+        val expected = emptyList<WeatherEvent>()
 
         val result = mapper.collectEvents(eventHours, shiftWeather, listOf(MoonPhase.FULL, MoonPhase.FULL))
 
@@ -271,9 +270,9 @@ class DailyEventsCollectionMapperTest {
         val eventHours = hourList(
             6,
             listOf(
-                hour(6, weather = DominantWeather.Rain, precipitation = Rain.Light),
-                hour(7, weather = DominantWeather.Rain, precipitation = Rain.Light),
-                hour(8, weather = DominantWeather.Rain, precipitation = Rain.Light)
+                eventHour(6, weather = DominantWeather.Rain, precipitation = Rain.Light),
+                eventHour(7, weather = DominantWeather.Rain, precipitation = Rain.Light),
+                eventHour(8, weather = DominantWeather.Rain, precipitation = Rain.Light)
             )
         )
         val shiftWeather = listOf(
@@ -282,7 +281,7 @@ class DailyEventsCollectionMapperTest {
             Weather(DominantWeather.Clouds, description = ""),
             Weather(DominantWeather.Clouds, description = ""),
         )
-        val expected = emptyList<WeatherEventCollection>()
+        val expected = emptyList<WeatherEvent>()
 
         val result = mapper.collectEvents(eventHours, shiftWeather, listOf(MoonPhase.FULL, MoonPhase.FULL))
 
@@ -295,9 +294,9 @@ class DailyEventsCollectionMapperTest {
         val eventHours = hourList(
             6,
             listOf(
-                hour(6, weather = DominantWeather.Rain, precipitation = Rain.Light),
-                hour(7, weather = DominantWeather.Rain, precipitation = Rain.Light),
-                hour(8, weather = DominantWeather.Rain, precipitation = Rain.Light)
+                eventHour(6, weather = DominantWeather.Rain, precipitation = Rain.Light),
+                eventHour(7, weather = DominantWeather.Rain, precipitation = Rain.Light),
+                eventHour(8, weather = DominantWeather.Rain, precipitation = Rain.Light)
             )
         )
         val shiftWeather = listOf(
@@ -306,8 +305,8 @@ class DailyEventsCollectionMapperTest {
             Weather(DominantWeather.Clouds, description = ""),
             Weather(DominantWeather.Clouds, description = ""),
         )
-        val expected = listOf<WeatherEventCollection>(
-            WeatherEventCollection(6,8, DominantWeather.Rain, Rain.Light, Visibility.HEX(60))
+        val expected = listOf(
+            WeatherEvent(6,8, DominantWeather.Rain, Rain.Light, Visibility.HEX(60))
         )
 
         val result = customMapper.collectEvents(eventHours, shiftWeather, listOf(MoonPhase.FULL, MoonPhase.FULL))
@@ -319,18 +318,18 @@ class DailyEventsCollectionMapperTest {
         val eventHours = hourList(
             5,
             listOf(
-                hour(5, weather = DominantWeather.Rain, precipitation = Rain.Light),
-                hour(6, weather = DominantWeather.Rain, precipitation = Rain.Light),
-                hour(7, weather = DominantWeather.Rain, precipitation = Rain.Light),
+                eventHour(5, weather = DominantWeather.Rain, precipitation = Rain.Light),
+                eventHour(6, weather = DominantWeather.Rain, precipitation = Rain.Light),
+                eventHour(7, weather = DominantWeather.Rain, precipitation = Rain.Light),
                 emptyHour(),
                 emptyHour(),
                 emptyHour(),
                 emptyHour(),
                 emptyHour(),
-                hour(13, weather = DominantWeather.Rain, precipitation = Rain.Light),
-                hour(14, weather = DominantWeather.Rain, precipitation = Rain.Moderate),
-                hour(15, weather = DominantWeather.Snow, precipitation = Snow.Light),
-                hour(16, weather = DominantWeather.Snow, precipitation = Snow.Light),
+                eventHour(13, weather = DominantWeather.Rain, precipitation = Rain.Light),
+                eventHour(14, weather = DominantWeather.Rain, precipitation = Rain.Moderate),
+                eventHour(15, weather = DominantWeather.Snow, precipitation = Snow.Light),
+                eventHour(16, weather = DominantWeather.Snow, precipitation = Snow.Light),
             )
         )
         val shiftWeather = listOf(
@@ -339,12 +338,12 @@ class DailyEventsCollectionMapperTest {
             Weather(DominantWeather.Clouds, description = ""),
             Weather(DominantWeather.Clouds, description = ""),
         )
-        val expected = listOf<WeatherEventCollection>(
-            WeatherEventCollection(5,5, DominantWeather.Rain, Rain.Light, Visibility.CLEAR),
-            WeatherEventCollection(6,7, DominantWeather.Rain, Rain.Light, Visibility.CLEAR),
-            WeatherEventCollection(13,13, DominantWeather.Rain, Rain.Light, Visibility.CLEAR),
-            WeatherEventCollection(14,14, DominantWeather.Rain, Rain.Moderate, Visibility.CLEAR),
-            WeatherEventCollection(15,16, DominantWeather.Snow, Snow.Light, Visibility.CLEAR),
+        val expected = listOf(
+            WeatherEvent(5,5, DominantWeather.Rain, Rain.Light, Visibility.CLEAR),
+            WeatherEvent(6,7, DominantWeather.Rain, Rain.Light, Visibility.CLEAR),
+            WeatherEvent(13,13, DominantWeather.Rain, Rain.Light, Visibility.CLEAR),
+            WeatherEvent(14,14, DominantWeather.Rain, Rain.Moderate, Visibility.CLEAR),
+            WeatherEvent(15,16, DominantWeather.Snow, Snow.Light, Visibility.CLEAR),
         )
 
         val result = mapper.collectEvents(eventHours, shiftWeather, listOf(MoonPhase.FULL, MoonPhase.FULL))
@@ -364,11 +363,11 @@ class DailyEventsCollectionMapperTest {
         return mutableList
     }
 
-    fun emptyHour(): WeatherEventHour {
-        return hour(0, weather = DominantWeather.Clouds)
+    private fun emptyHour(): WeatherEventHour {
+        return eventHour(0, weather = DominantWeather.Clouds)
     }
 
-    fun hour(
+    private fun eventHour(
         hour: Int,
         weather: DominantWeather,
         precipitation: Precipitation = Rain.None

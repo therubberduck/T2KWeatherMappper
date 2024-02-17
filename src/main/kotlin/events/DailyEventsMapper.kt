@@ -1,16 +1,22 @@
 package events
 
 import almanac.*
+import almanac.KelvinToCelsius
 import mock.IVisibilityConverter
 import model.MoonPhase
 import model.RawWeatherHour
 import model.Shift
+import kotlin.math.roundToInt
 
 class DailyEventsMapper(
     private val visibilityConverter: IVisibilityConverter
 ) {
 
-    fun mapDay(rawHours: List<RawWeatherHour>, shiftWeather: List<Weather>, moonPhases: List<MoonPhase>): String {
+    fun mapDay(
+        rawHours: List<RawWeatherHour>,
+        shiftWeather: List<Weather>,
+        moonPhases: List<MoonPhase>
+    ): String {
         if (rawHours.size != 24) {
             throw IllegalStateException("Day data had wrong number of hours")
         }
@@ -18,11 +24,16 @@ class DailyEventsMapper(
         val mappedHours = rawHours.mapIndexed { index, rawWeatherHour -> mapHour(rawWeatherHour, index) }
         val events = collectEvents(mappedHours, shiftWeather, moonPhases)
         val eventDescriptions = events.map { mapEventCollectionToDescription(it) }
-        return eventDescriptions.joinToString(", ")
+        return if(eventDescriptions.isNotEmpty()) {
+            eventDescriptions.joinToString(", ")
+        }
+        else {
+            "No weather events"
+        }
     }
 
     fun mapHour(rawHour: RawWeatherHour, index: Int): WeatherEventHour {
-        val tempC = rawHour.tempK.toDouble().KelvinToCelsius().toInt()
+        val tempC = rawHour.tempK.toDouble().reduceTempForNuclearWinter(rawHour.dto).KelvinToCelsius().roundToInt()
         val rain = rawHour.rain1h.toRain()
         val snow = rawHour.snow1h.toSnow()
         val precipitation = if (rain != Rain.None || snow != Snow.None) {
@@ -33,9 +44,9 @@ class DailyEventsMapper(
         return WeatherEventHour(index, mapDominantWeather(rawHour, tempC), precipitation)
     }
 
-    fun collectEvents(eventHours: List<WeatherEventHour>, shiftWeather: List<Weather>, moonPhases: List<MoonPhase>): List<WeatherEventCollection> {
+    fun collectEvents(eventHours: List<WeatherEventHour>, shiftWeather: List<Weather>, moonPhases: List<MoonPhase>): List<WeatherEvent> {
         // Gather the events
-        val events = mutableListOf<WeatherEventCollection>()
+        val events = mutableListOf<WeatherEvent>()
         for (eventHour in eventHours) {
             if (eventHour.weather != DominantWeather.Clouds) {
                 if (events.lastOrNull() != null &&
@@ -53,7 +64,7 @@ class DailyEventsMapper(
                         moonPhases[1]
                     }
                     events.add(
-                        WeatherEventCollection(
+                        WeatherEvent(
                             eventHour.hour,
                             eventHour.hour,
                             eventHour.weather,
@@ -72,17 +83,18 @@ class DailyEventsMapper(
         }
 
         // Compare to shift weather
-        val finalEventCollection = mutableListOf<WeatherEventCollection>()
-        for (eventCollection in events) {
-            val weatherOfShift = shiftWeather.fromHour(eventCollection.start)
-            if (weatherOfShift.dominant != eventCollection.weather ||
-                weatherOfShift.precipitation != eventCollection.precipitation
+        val finalEvents = mutableListOf<WeatherEvent>()
+        for (event in events) {
+            val weatherOfShift = shiftWeather.fromHour(event.start)
+            if ((weatherOfShift.dominant != event.weather ||
+                weatherOfShift.precipitation != event.precipitation) //&&
+//                event.isSignificantEvent()
             ) {
-                finalEventCollection.add(eventCollection)
+                finalEvents.add(event)
             }
         }
 
-        return finalEventCollection
+        return finalEvents
     }
 
     private fun List<Weather>.fromHour(hour: Int): Weather {
@@ -94,7 +106,19 @@ class DailyEventsMapper(
         }
     }
 
-    fun mapEventCollectionToDescription(eventCollection: WeatherEventCollection): String {
+    private fun WeatherEvent.isSignificantEvent(): Boolean {
+        return if(
+            (this.precipitation == Rain.Light || this.precipitation == Snow.Light) &&
+            this.start == this.end
+        ) {
+            false
+        }
+        else {
+            true
+        }
+    }
+
+    fun mapEventCollectionToDescription(eventCollection: WeatherEvent): String {
         val startTime = String.format("%02d", eventCollection.start)
         val endTime = String.format("%02d", eventCollection.end + 1)
 
@@ -105,7 +129,7 @@ class DailyEventsMapper(
             ""
         }
 
-        return "<b>$startTime-$endTime:</b> ${eventCollection.precipitation.desc}$visibility"
+        return "$startTime:00-$endTime:00: ${eventCollection.precipitation.desc}$visibility"
     }
 
     private fun mapDominantWeather(rawHour: RawWeatherHour, temp: Int): DominantWeather {
@@ -125,8 +149,8 @@ class DailyEventsMapper(
     private fun Float?.toRain(): Rain {
         return when {
             this == null -> Rain.None
-            this < 0.17 -> Rain.Light
-            this < 0.67 -> Rain.Moderate
+            this < 1 -> Rain.Light
+            this < 4 -> Rain.Moderate
             else -> Rain.Heavy
         }
     }
@@ -134,15 +158,15 @@ class DailyEventsMapper(
     private fun Float?.toSnow(): Snow {
         return when {
             this == null -> Snow.None
-            this < 0.17 -> Snow.Light
-            this < 0.34 -> Snow.Moderate
+            this < 1 -> Snow.Light
+            this < 2 -> Snow.Moderate
             else -> Snow.Heavy
         }
     }
 
     data class WeatherEventHour(val hour: Int, val weather: DominantWeather, val precipitation: Precipitation)
 
-    data class WeatherEventCollection(
+    data class WeatherEvent(
         val start: Int,
         var end: Int,
         val weather: DominantWeather,
