@@ -13,6 +13,10 @@ interface IVisibilityConverter {
         moonPhase: MoonPhase,
         weather: Weather
     ): Visibility
+
+    /**
+     * Note that this visibility only returns worst visibility (I.E, during precipitation / cloud cover)
+     */
     fun getVisibility(
         shift: Shift,
         moonPhase: MoonPhase,

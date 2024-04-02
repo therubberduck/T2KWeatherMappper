@@ -25,6 +25,9 @@ class VisibilityConverter(private val rand: IRandom = Random()) : IVisibilityCon
         }
     }
 
+    /**
+     * Note that this visibility only returns worst visibility (I.E, during precipitation / cloud cover)
+     */
     override fun getVisibility(
         shift: Shift,
         moonPhase: MoonPhase,
@@ -35,7 +38,7 @@ class VisibilityConverter(private val rand: IRandom = Random()) : IVisibilityCon
         return if (shift == Shift.MORNING || shift == Shift.AFTERNOON) {
             getVisibilityDay(dominantWeather, precipitation)
         } else {
-            getVisibilityNight(moonPhase, cloudCover, dominantWeather)
+            getVisibilityNight(moonPhase, cloudCover, dominantWeather, true)
         }
     }
 
@@ -91,7 +94,7 @@ class VisibilityConverter(private val rand: IRandom = Random()) : IVisibilityCon
         }
     }
 
-    fun getVisibilityNight(moonPhase: MoonPhase, cloudCover: Int, dominantWeather: DominantWeather): Visibility {
+    fun getVisibilityNight(moonPhase: MoonPhase, cloudCover: Int, dominantWeather: DominantWeather, onlyWorst: Boolean = false): Visibility {
         val rawLightStep = when (moonPhase) {
             MoonPhase.FULL -> 0
             MoonPhase.HALF -> 1
@@ -111,16 +114,21 @@ class VisibilityConverter(private val rand: IRandom = Random()) : IVisibilityCon
         if (lightStep > 4) {
             lightStep = 4
         }
-        return when (cloudCover) {
-            25 -> Visibility.MULTIPLE(
-                getVisibilityByLightingStep(rawLightStep), getVisibilityByLightingStep(lightStep)
-            )
+        return if(onlyWorst) {
+            getVisibilityByLightingStep(lightStep)
+        }
+        else {
+            when (cloudCover) {
+                25 -> Visibility.MULTIPLE(
+                    getVisibilityByLightingStep(rawLightStep), getVisibilityByLightingStep(lightStep)
+                )
 
-            in 50..75 -> Visibility.MULTIPLE(
-                getVisibilityByLightingStep(lightStep), getVisibilityByLightingStep(rawLightStep)
-            )
+                in 50..75 -> Visibility.MULTIPLE(
+                    getVisibilityByLightingStep(lightStep), getVisibilityByLightingStep(rawLightStep)
+                )
 
-            else -> getVisibilityByLightingStep(lightStep)
+                else -> getVisibilityByLightingStep(lightStep)
+            }
         }
     }
 
