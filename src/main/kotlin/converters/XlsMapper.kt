@@ -91,9 +91,9 @@ class XlsMapper {
                 bold = false
             },
             shiftLowerFont = workBook.createFont().apply {
-                fontName = "Cavolini"
+                fontName = "Calibri"
                 fontHeightInPoints = 9
-                bold = true
+                bold = false
             }
         )
 
@@ -202,7 +202,7 @@ class XlsMapper {
         upperFont: XSSFFont,
         lowerFont: XSSFFont
     ) {
-        val richText = HSSFRichTextString(value)
+        val richText = XSSFRichTextString(value)
         richText.applyFont(0, 1, upperFont)
         richText.applyFont(1, value.length, lowerFont)
         row.createCell(column).apply {
