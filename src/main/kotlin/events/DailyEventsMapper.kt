@@ -23,9 +23,21 @@ class DailyEventsMapper(
 
         val mappedHours = rawHours.mapIndexed { index, rawWeatherHour -> mapHour(rawWeatherHour, index) }
         val events = collectEvents(mappedHours, shiftWeather, moonPhases)
-        val eventDescriptions = events.map { mapEventCollectionToDescription(it) }
+        var prevEvent: WeatherEvent? = null
+        var eventDescriptions = ""
+        events.forEach {
+            if(prevEvent == null) {
+                eventDescriptions += Shift.fromHour(it.start).gameName + ":"
+            }
+            else if(Shift.fromHour(prevEvent?.end ?: 0) != Shift.fromHour(it.start)) {
+                eventDescriptions = eventDescriptions.removeSuffix(", ")
+                eventDescriptions += "\n" + Shift.fromHour(it.start).gameName + ":"
+            }
+            eventDescriptions += (mapEventCollectionToDescription(it)) + ", "
+            prevEvent = it
+        }
         return if(eventDescriptions.isNotEmpty()) {
-            eventDescriptions.joinToString(", ")
+            eventDescriptions.removeSuffix(", ")
         }
         else {
             "No weather events"

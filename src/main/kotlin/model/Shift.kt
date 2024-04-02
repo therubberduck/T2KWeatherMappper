@@ -1,10 +1,10 @@
 package model
 
-enum class Shift {
-    NIGHT,
-    MORNING,
-    AFTERNOON,
-    EVENING;
+enum class Shift(val gameName: String) {
+    NIGHT("Night"),
+    MORNING("Morning"),
+    AFTERNOON("Day"),
+    EVENING("Evening");
 
     companion object {
         fun fromHour(hour: Int): Shift {
