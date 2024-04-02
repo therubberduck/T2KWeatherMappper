@@ -7,6 +7,7 @@ import model.GroundCover
 import java.io.File
 
 val moonPhaseFileForYear = "moon-phases-2000-Europe_Warsaw.csv"
+val sunriseFileForYear = "sunrise-sunset-2000-Warsaw.txt"
 //val moonPhaseFileForYear = "moon-phases-1999-Europe_Warsaw.csv"
 //val inputFile = "1999-September-Dec-Europe-Warsaw.csv"
 val inputFile = "2000-Europe-Warsaw.csv"
