@@ -22,7 +22,6 @@ class AlmanacMapper(private val moonPhaseCalc: MoonPhaseCalc? = null, private va
             val shifts = rawDayData.map {rawShift -> convertToAlmanac(rawShift) }
             val collectedRawHoursForDay = rawDayData.night + rawDayData.morning + rawDayData.afternoon + rawDayData.evening
             val weatherOfDay = shifts.map { it.weatherData }
-            val windsOfDay = shifts.map { it.windData }
             val moonPhases = listOf(shifts.first().moonPhase, shifts.last().moonPhase)
             AlmanacDay(
                 rawDayData.night.hour0.dto.withTimeAtStartOfDay(),
@@ -30,7 +29,7 @@ class AlmanacMapper(private val moonPhaseCalc: MoonPhaseCalc? = null, private va
                 shifts[1],
                 shifts[2],
                 shifts[3],
-                dailyEventsMapper.mapDay(collectedRawHoursForDay, weatherOfDay, windsOfDay, moonPhases)
+                dailyEventsMapper.mapDay(collectedRawHoursForDay, weatherOfDay, moonPhases)
             )
         }
     }
@@ -110,8 +109,7 @@ class AlmanacMapper(private val moonPhaseCalc: MoonPhaseCalc? = null, private va
             visibility = visibility.desc,
             nightVision = nvVision.desc,
             moonPhase = moonPhase.simple,
-            weatherData = weatherData,
-            windData = windValue.speed
+            weatherData = weatherData
         )
     }
 
