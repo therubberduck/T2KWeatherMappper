@@ -206,7 +206,7 @@ abstract class Visibility {
                 }
                 val modValue = when (mod) {
                     0 -> ""
-                    -4 -> " (-3 ⃰)"
+                    -4 -> " (-3*)"
                     else -> " (-${mod.absoluteValue})"
                 }
 
@@ -215,9 +215,8 @@ abstract class Visibility {
     }
 
     data class KM(val km: Double) : Visibility() {
-        private val decimalFormat = DecimalFormat("0.#")
         override val desc: String
-            get() = "${decimalFormat.format(km)} km"
+            get() = "${Math.ceil(km).toInt()} km"
     }
 
     data class MULTIPLE(val distMain: HEX, val distSec: HEX) : Visibility() {
@@ -229,7 +228,7 @@ abstract class Visibility {
             fun makeDesc(hex: HEX): String {
                 val modValue = when (hex.mod) {
                     0 -> ""
-                    -4 -> " (-3 ⃰)"
+                    -4 -> " (-3*)"
                     else -> " (-${hex.mod.absoluteValue})"
                 }
 

@@ -11,6 +11,6 @@ data class AlmanacShift(
     val ground: String,
     val visibility: String,
     val nightVision: String,
-    val moonPhase: MoonPhase,
+    val moonPhase: MoonPhaseFull,
     val weatherData: Weather
 )

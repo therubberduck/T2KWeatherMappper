@@ -3,6 +3,7 @@ package converters
 import model.AlmanacDay
 import model.RawWeatherHour
 import org.joda.time.DateTime
+import org.joda.time.format.DateTimeFormatterBuilder
 import org.joda.time.format.ISODateTimeFormat
 import java.io.File
 import java.io.InputStream
@@ -39,24 +40,38 @@ fun writeCsv(almanac: List<AlmanacDay>, outputFile: File) {
     val outputStream = outputFile.outputStream()
     val writer = outputStream.bufferedWriter(Charsets.UTF_8)
 
-    writer.write("Date,Shift,Felt Temp,Temp,Weather,CC,Wind,Ground,Visibility,NV")
-    writer.newLine()
+    val builder = DateTimeFormatterBuilder()
 
     almanac.forEach {day ->
-        val date = day.dateTime.toLocalDate().toString()
-        writer.write("$date,Night,${day.night.feltTemp},${day.night.temp},${day.night.weather},${day.night.cloudCover},${day.night.wind},${day.night.ground},${day.night.visibility},${day.night.nightVision}")
+        val localDate = day.dateTime.toLocalDate()
+        val date = localDate.toString("MMM d") + getDayOfMonthSuffix(localDate.dayOfMonth)
+        writer.write("${date},,Shift,Felt Temp,Temp,Weather,CC,Wind,Ground,Visibility,NV")
         writer.newLine()
-        writer.write("$date,Morning,${day.morning.feltTemp},${day.morning.temp},${day.morning.weather},${day.morning.cloudCover},${day.morning.wind},${day.morning.ground},${day.morning.visibility},${day.morning.nightVision}")
+        writer.write(",,Night,${day.night.feltTemp},${day.night.temp},${day.night.weather},${day.night.cloudCover},${day.night.wind},${day.night.ground},${day.night.visibility},${day.night.nightVision}")
         writer.newLine()
-        writer.write("$date,Day,${day.afternoon.feltTemp},${day.afternoon.temp},${day.afternoon.weather},${day.afternoon.cloudCover},${day.afternoon.wind},${day.afternoon.ground},${day.afternoon.visibility},${day.afternoon.nightVision}")
+        writer.write(",,Morning,${day.morning.feltTemp},${day.morning.temp},${day.morning.weather},${day.morning.cloudCover},${day.morning.wind},${day.morning.ground},${day.morning.visibility},${day.morning.nightVision}")
         writer.newLine()
-        writer.write("$date,Evening,${day.evening.feltTemp},${day.evening.temp},${day.evening.weather},${day.evening.cloudCover},${day.evening.wind},${day.evening.ground},${day.evening.visibility},${day.evening.nightVision}")
+        writer.write(",,Day,${day.afternoon.feltTemp},${day.afternoon.temp},${day.afternoon.weather},${day.afternoon.cloudCover},${day.afternoon.wind},${day.afternoon.ground},${day.afternoon.visibility},${day.afternoon.nightVision}")
         writer.newLine()
-        writer.write(",\"${day.events}\"")
+        writer.write("${day.moonPhase},,Evening,${day.evening.feltTemp},${day.evening.temp},${day.evening.weather},${day.evening.cloudCover},${day.evening.wind},${day.evening.ground},${day.evening.visibility},${day.evening.nightVision}")
+        writer.newLine()
+        writer.write(",,\"${day.events}\"")
         writer.newLine()
     }
     writer.close()
     println("Almanac saved to ${outputFile.name}")
+}
+
+private fun getDayOfMonthSuffix(n: Int): String {
+    if (n in 11..13) {
+        return "th"
+    }
+    return when (n % 10) {
+        1 -> "st"
+        2 -> "nd"
+        3 -> "rd"
+        else -> "th"
+    }
 }
 
 private fun convertCsvStringToDateTime(textDate: String): DateTime {

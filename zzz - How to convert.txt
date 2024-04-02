@@ -1,0 +1,6 @@
+1. Open csv in OpenOffice Calc
+2. Save as Excel 97 document
+3. Copy style from first day in zzz - Template.xls with Format Painter and apply to whole document
+4. Copy directly into Word template
+5. Convert ˡ to superscript L
+6. Convert ˢ to superscript S
