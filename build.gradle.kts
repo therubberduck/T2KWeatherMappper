@@ -11,6 +11,8 @@ repositories {
 
 dependencies {
     implementation("joda-time:joda-time:2.12.5")
+    implementation("org.apache.poi:poi:5.2.3")
+    implementation("org.apache.poi:poi-ooxml:5.2.3")
 
     testImplementation(kotlin("test"))
     testImplementation("org.junit.jupiter:junit-jupiter-params:5.1.0")

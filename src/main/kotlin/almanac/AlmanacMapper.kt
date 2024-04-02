@@ -109,6 +109,7 @@ class AlmanacMapper(
         val groundCoverString = GroundToString.makeString(rawGroundCover)
 
         return AlmanacShift(
+            shift = currentShift,
             feltTemp = feltTemp.label,
             temp = tempString,
             weather = weatherData.description,

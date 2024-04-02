@@ -3,6 +3,7 @@ package model
 import almanac.Weather
 
 data class AlmanacShift(
+    val shift: Shift,
     val feltTemp: String,
     val temp: String,
     val weather: String,
