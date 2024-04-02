@@ -18,7 +18,12 @@ class AlmanacMapperMiscTest {
         val fileInputStream = File("test.csv").inputStream()
         rawCsvHours = converters.readCsv(fileInputStream)
 
-        mapper = AlmanacMapper(null, VisibilityConverter(), GroundCover(0f, 0f, 0f, 0f, 0f, false, false))
+        mapper = AlmanacMapper(
+            null,
+            null,
+            VisibilityConverter(),
+            GroundCover(0f, 0f, 0f, 0f, 0f, false, false)
+        )
     }
 
     @Test

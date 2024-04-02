@@ -1,8 +1,8 @@
 package almanac
 
-import org.joda.time.DateTime
+import org.joda.time.LocalDateTime
 
-fun Double.reduceTempForNuclearWinter(date: DateTime): Double {
+fun Double.reduceTempForNuclearWinter(date: LocalDateTime): Double {
     return if(date.monthOfYear in 5..8) {
         this - 2.5
     }

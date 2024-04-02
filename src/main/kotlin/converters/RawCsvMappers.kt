@@ -3,6 +3,7 @@ package converters
 import model.AlmanacDay
 import model.RawWeatherHour
 import org.joda.time.DateTime
+import org.joda.time.LocalDateTime
 import org.joda.time.format.DateTimeFormatterBuilder
 import org.joda.time.format.ISODateTimeFormat
 import java.io.File
@@ -40,18 +41,16 @@ fun writeCsv(almanac: List<AlmanacDay>, outputFile: File) {
     val outputStream = outputFile.outputStream()
     val writer = outputStream.bufferedWriter(Charsets.UTF_8)
 
-    val builder = DateTimeFormatterBuilder()
-
     almanac.forEach {day ->
         val localDate = day.dateTime.toLocalDate()
         val date = localDate.toString("MMM d") + getDayOfMonthSuffix(localDate.dayOfMonth)
         writer.write("${date},,Shift,Felt Temp,Temp,Weather,CC,Wind,Ground,Visibility,NV")
         writer.newLine()
-        writer.write(",,Night,${day.night.feltTemp},${day.night.temp},${day.night.weather},${day.night.cloudCover},${day.night.wind},${day.night.ground},${day.night.visibility},${day.night.nightVision}")
+        writer.write(",${day.sunrise.toString("HH:mm")},Night,${day.night.feltTemp},${day.night.temp},${day.night.weather},${day.night.cloudCover},${day.night.wind},${day.night.ground},${day.night.visibility},${day.night.nightVision}")
         writer.newLine()
         writer.write(",,Morning,${day.morning.feltTemp},${day.morning.temp},${day.morning.weather},${day.morning.cloudCover},${day.morning.wind},${day.morning.ground},${day.morning.visibility},${day.morning.nightVision}")
         writer.newLine()
-        writer.write(",,Day,${day.afternoon.feltTemp},${day.afternoon.temp},${day.afternoon.weather},${day.afternoon.cloudCover},${day.afternoon.wind},${day.afternoon.ground},${day.afternoon.visibility},${day.afternoon.nightVision}")
+        writer.write(",${day.sunset.toString("HH:mm")},Day,${day.afternoon.feltTemp},${day.afternoon.temp},${day.afternoon.weather},${day.afternoon.cloudCover},${day.afternoon.wind},${day.afternoon.ground},${day.afternoon.visibility},${day.afternoon.nightVision}")
         writer.newLine()
         writer.write("${day.moonPhase},,Evening,${day.evening.feltTemp},${day.evening.temp},${day.evening.weather},${day.evening.cloudCover},${day.evening.wind},${day.evening.ground},${day.evening.visibility},${day.evening.nightVision}")
         writer.newLine()
@@ -74,7 +73,7 @@ private fun getDayOfMonthSuffix(n: Int): String {
     }
 }
 
-private fun convertCsvStringToDateTime(textDate: String): DateTime {
+private fun convertCsvStringToDateTime(textDate: String): LocalDateTime {
     val adjustedDateString = textDate.dropLast(10).replaceRange(10, 11, "T") + ".000Z"
-    return ISODateTimeFormat.dateTime().withZoneUTC().parseDateTime(adjustedDateString)
+    return ISODateTimeFormat.dateTime().withZoneUTC().parseDateTime(adjustedDateString).toLocalDateTime()
 }

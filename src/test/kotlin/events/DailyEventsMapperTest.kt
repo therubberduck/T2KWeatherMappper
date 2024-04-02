@@ -6,6 +6,7 @@ import mock.MockRandom
 import mock.MockVisibilityConverter
 import model.RawWeatherHour
 import org.joda.time.DateTime
+import org.joda.time.LocalDateTime
 import org.junit.jupiter.api.Test
 
 import kotlin.test.BeforeTest
@@ -59,7 +60,7 @@ class DailyEventsMapperTest {
     ): RawWeatherHour {
         val tempK = tempC + 273.15f
         return RawWeatherHour(
-            dto = DateTime(),
+            dto = LocalDateTime(),
             tempK = tempK,
             dewPoint = 0f,
             feelsLikeK = 0f,

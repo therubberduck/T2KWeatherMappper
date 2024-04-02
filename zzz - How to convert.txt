@@ -5,3 +5,6 @@
 5. Convert ˡ to superscript L
 6. Convert ˢ to superscript S
 7. Remove extra newline from all the dates (Jan 1st, Jan 2nd, etc).
+8. Remove extra newline from sunrise and sunset times
+9. In events italize shift names
+10. In events bold event times

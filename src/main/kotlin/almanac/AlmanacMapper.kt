@@ -9,7 +9,12 @@ import model.*
 import roundToFiveInt
 import java.io.File
 
-class AlmanacMapper(private val moonPhaseCalc: MoonPhaseCalc? = null, private val visibilityConverter: VisibilityConverter, startingGroundCover: GroundCover) {
+class AlmanacMapper(
+    private val sunriseSunsetCalc: SunriseCalc? = null,
+    private val moonPhaseCalc: MoonPhaseCalc? = null,
+    private val visibilityConverter: VisibilityConverter,
+    startingGroundCover: GroundCover
+) {
 
     private val groundCoverBucket = GroundCoverBucket(startingGroundCover)
     private val dailyEventsMapper = DailyEventsMapper(visibilityConverter)
@@ -23,9 +28,12 @@ class AlmanacMapper(private val moonPhaseCalc: MoonPhaseCalc? = null, private va
             val collectedRawHoursForDay = rawDayData.night + rawDayData.morning + rawDayData.afternoon + rawDayData.evening
             val weatherOfDay = shifts.map { it.weatherData }
             val moonPhases = listOf(shifts.first().moonPhase.simple, shifts.last().moonPhase.simple)
+            val sunriseSunset = sunriseSunsetCalc?.getSunriseSunsetFor(rawDayData.night.hour0.dto) ?: throw NotImplementedError("")
             AlmanacDay(
-                rawDayData.night.hour0.dto.withTimeAtStartOfDay(),
+                rawDayData.night.hour0.dto.withTime(0,0,0,0),
                 shifts.last().moonPhase.letter,
+                sunriseSunset.sunrise,
+                sunriseSunset.sunset,
                 shifts[0],
                 shifts[1],
                 shifts[2],
@@ -50,7 +58,7 @@ class AlmanacMapper(private val moonPhaseCalc: MoonPhaseCalc? = null, private va
 
         // Calculate moonphase
         // Move night / morning shift to previous day, since moons are the moon of "the night of"
-        val moonDate = rawShift.hour0.dto.minusHours(12).withTimeAtStartOfDay()
+        val moonDate = rawShift.hour0.dto.minusHours(12).withTime(0,0,0,0)
         val moonPhase = moonPhaseCalc?.calc(moonDate) ?: MoonPhaseFull.FULL
 
         // Generate Temperature

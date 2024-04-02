@@ -1,24 +1,24 @@
 import almanac.AlmanacMapper
 import almanac.MoonPhaseCalc
+import almanac.SunriseCalc
 import almanac.VisibilityConverter
 import converters.writeCsv
 import mock.Random
 import model.GroundCover
 import java.io.File
 
+val timeZoneAdjustment = 1
 val moonPhaseFileForYear = "moon-phases-2000-Europe_Warsaw.csv"
-val sunriseFileForYear = "sunrise-sunset-2000-Warsaw.txt"
-//val moonPhaseFileForYear = "moon-phases-1999-Europe_Warsaw.csv"
-//val inputFile = "1999-September-Dec-Europe-Warsaw.csv"
+val sunriseFileForYear = "sunrise_sunset_2000_Warsaw_horizon.csv"
 val inputFile = "2000-Europe-Warsaw.csv"
-//val outputFile = "output99.csv"
 val outputFile = "Year2000.csv"
 
 fun main() {
     val moonPhaseCalc = MoonPhaseCalc(File(moonPhaseFileForYear))
+    val sunriseSunsetCalc = SunriseCalc(File(sunriseFileForYear), timeZoneAdjustment)
     val visibilityConverter = VisibilityConverter(Random())
-//    val almanac = AlmanacMapper(moonPhaseCalc, visibilityConverter, GroundCover(0f, 0f, 0f, 0f, false)).makeAlmanac(File(inputFile))
     val almanac = AlmanacMapper(
+        sunriseSunsetCalc = sunriseSunsetCalc,
         moonPhaseCalc = moonPhaseCalc,
         visibilityConverter = visibilityConverter,
         startingGroundCover = GroundCover(

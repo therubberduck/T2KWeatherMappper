@@ -6,7 +6,7 @@ import almanac.Snow
 import almanac.Visibility
 import mock.MockVisibilityConverter
 import model.RawWeatherHour
-import org.joda.time.DateTime
+import org.joda.time.LocalDateTime
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
@@ -51,7 +51,7 @@ class DailyEventsMapperHourTest {
         private fun hour(tempC: Int, windSpeed: Int, windDegree: Int, rain1h: Double? = null, snow1h: Double? = null, weatherMain: DominantWeather): RawWeatherHour {
             val tempK = tempC + 273.15f
             return RawWeatherHour(
-                dto = DateTime(6,6,6,6,6),
+                dto = LocalDateTime(6,6,6,6,6),
                 tempK = tempK,
                 dewPoint = 0f,
                 feelsLikeK = 0f,

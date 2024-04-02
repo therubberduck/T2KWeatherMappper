@@ -1,6 +1,8 @@
 package almanac
 
 import org.joda.time.DateTime
+import org.joda.time.DateTimeZone
+import org.joda.time.LocalDateTime
 import org.joda.time.LocalTime
 import org.junit.jupiter.api.Test
 
@@ -31,21 +33,27 @@ class SunriseCalcTest {
     @Test
     fun linesToData() {
         // Arrange
+        val firstDate = makeDate(1,1)
+        val lastDate = makeDate(1,6)
         val sunriseCalc = SunriseCalc(File.createTempFile("temp", "test"), 1)
 
         // Act
         val result = sunriseCalc.linesToData(testData.lineSequence())
 
         // Assert
-        kotlin.test.assertContains(result, DateTime(2020, 1, 1, 0, 0))
-        kotlin.test.assertContains(result, DateTime(2020, 1, 2, 0, 0))
-        kotlin.test.assertContains(result, DateTime(2020, 1, 3, 0, 0))
-        kotlin.test.assertContains(result, DateTime(2020, 1, 4, 0, 0))
-        kotlin.test.assertContains(result, DateTime(2020, 1, 5, 0, 0))
-        kotlin.test.assertContains(result, DateTime(2020, 1, 6, 0, 0))
-        kotlin.test.assertEquals(LocalTime(7,47), result[DateTime(2020, 1, 1, 0, 0)]?.sunrise)
-        kotlin.test.assertEquals(LocalTime(15,32), result[DateTime(2020, 1, 1, 0, 0)]?.sunset)
-        kotlin.test.assertEquals(LocalTime(7,46), result[DateTime(2020, 1, 6, 0, 0)]?.sunrise)
-        kotlin.test.assertEquals(LocalTime(15,38), result[DateTime(2020, 1, 6, 0, 0)]?.sunset)
+        kotlin.test.assertContains(result, firstDate)
+        kotlin.test.assertContains(result, makeDate(1,2))
+        kotlin.test.assertContains(result, makeDate(1,3))
+        kotlin.test.assertContains(result, makeDate(1,4))
+        kotlin.test.assertContains(result, makeDate(1,5))
+        kotlin.test.assertContains(result, lastDate)
+        kotlin.test.assertEquals(LocalTime(7,47), result[firstDate]?.sunrise)
+        kotlin.test.assertEquals(LocalTime(15,32), result[firstDate]?.sunset)
+        kotlin.test.assertEquals(LocalTime(7,46), result[lastDate]?.sunrise)
+        kotlin.test.assertEquals(LocalTime(15,38), result[lastDate]?.sunset)
+    }
+
+    private fun makeDate(month: Int, day: Int): LocalDateTime {
+        return LocalDateTime(2020, month, day, 0, 0)
     }
 }

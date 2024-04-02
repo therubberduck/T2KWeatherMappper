@@ -1,43 +1,44 @@
 package almanac
 
-import model.MoonPhaseFull
 import model.SunriseSunset
-import org.joda.time.DateTime
 import org.joda.time.LocalDateTime
 import org.joda.time.format.DateTimeFormat
 import java.io.File
+import java.util.*
 
 class SunriseCalc(file: File, val timeZoneAdjustment: Int) {
 
-    private lateinit var sunriseSunsetList: Map<DateTime, SunriseSunset>
+    private lateinit var sunriseSunsetList: Map<LocalDateTime, SunriseSunset>
 
     init {
         val rawDataRows = readCsv(file)
+    }
+
+    fun getSunriseSunsetFor(date: LocalDateTime): SunriseSunset {
+        return sunriseSunsetList[date.withTime(0, 0, 0, 0)]
+            ?: throw IndexOutOfBoundsException(date.toString("yyyy-MMM-dd HH:mm") + " not found")
     }
 
     fun readCsv(file: File) {
         val inputStream = file.inputStream()
         val reader = inputStream.bufferedReader()
 
-        // Skip Header
-        reader.readLine()
-
         sunriseSunsetList = linesToData(reader.lineSequence())
     }
 
-    fun linesToData(lines: Sequence<String>): Map<DateTime, SunriseSunset> {
-        val dateTimePattern = DateTimeFormat.forPattern("yyyy-MMM-dd HH:mm")
+    fun linesToData(lines: Sequence<String>): Map<LocalDateTime, SunriseSunset> {
+        val dateTimePattern = DateTimeFormat.forPattern("yyyy-MMM-dd HH:mm").withZoneUTC().withLocale(Locale.US)
 
-        val tempSunriseSunsetList = mutableMapOf<DateTime, SunriseSunset>()
-        var sunriseDate: DateTime? = null
+        val tempSunriseSunsetList = mutableMapOf<LocalDateTime, SunriseSunset>()
+        var sunriseDate: LocalDateTime? = null
         lines.filter { it.isNotBlank() }
             .forEachIndexed { index, line ->
                 val entries = line.split(',', ignoreCase = false)
-                val date = DateTime.parse(entries[0].trim(), dateTimePattern)
+                val date = dateTimePattern.parseLocalDateTime(entries[0].trim())
                 when {
                     index % 3 == 0 -> sunriseDate = date
                     index % 3 == 2 -> tempSunriseSunsetList.put(
-                        date.withTimeAtStartOfDay(),
+                        date.withTime(0, 0, 0, 0),
                         SunriseSunset(
                             sunriseDate!!.toLocalTime().plusHours(timeZoneAdjustment),
                             date.toLocalTime().plusHours(timeZoneAdjustment)

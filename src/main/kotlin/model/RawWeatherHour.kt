@@ -1,9 +1,9 @@
 package model
 
-import org.joda.time.DateTime
+import org.joda.time.LocalDateTime
 
 data class RawWeatherHour(
-    val dto: DateTime,
+    val dto: LocalDateTime,
     val tempK: Float,
     val dewPoint: Float,
     val feelsLikeK: Float,

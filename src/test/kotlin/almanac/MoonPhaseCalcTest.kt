@@ -1,9 +1,8 @@
 package almanac
 
-import mock.MockRandom
 import model.MoonPhaseFull
-import org.joda.time.DateTime
-import org.junit.jupiter.api.Assertions.*
+import org.joda.time.LocalDateTime
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -27,18 +26,18 @@ class MoonPhaseCalcTest {
         @JvmStatic
         fun moonValues(): List<Arguments> {
             return listOf(
-                Arguments.of(DateTime(2000, 1, 1, 0, 0), MoonPhaseFull.WANING_CRESCENT),
-                Arguments.of(DateTime(2000, 1, 4, 0, 0), MoonPhaseFull.WANING_CRESCENT),
-                Arguments.of(DateTime(2000, 1, 5, 0, 0), MoonPhaseFull.NEW),
-                Arguments.of(DateTime(2000, 1, 6, 0, 0), MoonPhaseFull.NEW),
-                Arguments.of(DateTime(2000, 1, 7, 0, 0), MoonPhaseFull.NEW),
-                Arguments.of(DateTime(2000, 1, 8, 0, 0), MoonPhaseFull.WAXING_CRESCENT),
-                Arguments.of(DateTime(2000, 1, 13, 0, 0), MoonPhaseFull.WAXING_CRESCENT),
-                Arguments.of(DateTime(2000, 1, 14, 0, 0), MoonPhaseFull.FIRST_QUARTER),
-                Arguments.of(DateTime(2000, 1, 20, 0, 0), MoonPhaseFull.FULL),
-                Arguments.of(DateTime(2000, 1, 22, 0, 0), MoonPhaseFull.FULL),
-                Arguments.of(DateTime(2000, 1, 28, 0, 0), MoonPhaseFull.THIRD_QUARTER),
-                Arguments.of(DateTime(2000, 12, 10, 0, 0), MoonPhaseFull.FULL),
+                Arguments.of(LocalDateTime(2000, 1, 1, 0, 0), MoonPhaseFull.WANING_CRESCENT),
+                Arguments.of(LocalDateTime(2000, 1, 4, 0, 0), MoonPhaseFull.WANING_CRESCENT),
+                Arguments.of(LocalDateTime(2000, 1, 5, 0, 0), MoonPhaseFull.NEW),
+                Arguments.of(LocalDateTime(2000, 1, 6, 0, 0), MoonPhaseFull.NEW),
+                Arguments.of(LocalDateTime(2000, 1, 7, 0, 0), MoonPhaseFull.NEW),
+                Arguments.of(LocalDateTime(2000, 1, 8, 0, 0), MoonPhaseFull.WAXING_CRESCENT),
+                Arguments.of(LocalDateTime(2000, 1, 13, 0, 0), MoonPhaseFull.WAXING_CRESCENT),
+                Arguments.of(LocalDateTime(2000, 1, 14, 0, 0), MoonPhaseFull.FIRST_QUARTER),
+                Arguments.of(LocalDateTime(2000, 1, 20, 0, 0), MoonPhaseFull.FULL),
+                Arguments.of(LocalDateTime(2000, 1, 22, 0, 0), MoonPhaseFull.FULL),
+                Arguments.of(LocalDateTime(2000, 1, 28, 0, 0), MoonPhaseFull.THIRD_QUARTER),
+                Arguments.of(LocalDateTime(2000, 12, 10, 0, 0), MoonPhaseFull.FULL),
             )
         }
     }
@@ -47,15 +46,15 @@ class MoonPhaseCalcTest {
     fun setupCorrect() {
         val output = calculator.readCsv(testFile)
 
-        assertEquals(DateTime(1999,12,29,0,0), output[0].dateTime)
-        assertEquals(DateTime(2000,1,6,0,0), output[1].dateTime)
+        assertEquals(LocalDateTime(1999,12,29,0,0), output[0].dateTime)
+        assertEquals(LocalDateTime(2000,1,6,0,0), output[1].dateTime)
         assertEquals(MoonPhaseFull.THIRD_QUARTER, output[0].phase)
         assertEquals(MoonPhaseFull.NEW, output[1].phase)
     }
 
     @ParameterizedTest(name = "For date {0} moonphase is {1}")
     @MethodSource("moonValues")
-    fun calc(date: DateTime, expected: MoonPhaseFull) {
+    fun calc(date: LocalDateTime, expected: MoonPhaseFull) {
         val result = calculator.calc(date)
         assertEquals(expected, result)
     }

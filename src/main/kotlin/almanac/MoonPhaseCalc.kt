@@ -1,16 +1,15 @@
 package almanac
 
+import converters.withTimeAtStartOfDay
 import model.MoonPhaseFull
-import org.joda.time.DateTime
+import org.joda.time.LocalDateTime
 import org.joda.time.format.DateTimeFormat
 import java.io.File
-import java.util.*
-import kotlin.NoSuchElementException
 
 
 class MoonPhaseCalc(file: File) {
 
-    private lateinit var moonPhaseList: List<Pair<DateTime, MoonPhaseFull>>
+    private lateinit var moonPhaseList: List<Pair<LocalDateTime, MoonPhaseFull>>
 
     init {
         val rawMoonRows = readCsv(file)
@@ -31,7 +30,7 @@ class MoonPhaseCalc(file: File) {
             .map {
                 val entries = it.split(',', ignoreCase = false)
                 RawMoonRow(
-                    dateTime = DateTime.parse(entries[0], dateTimePattern),
+                    dateTime = LocalDateTime.parse(entries[0], dateTimePattern),
                     phase = when (entries[3]) {
                         "1" -> MoonPhaseFull.NEW
                         "2" -> MoonPhaseFull.FIRST_QUARTER
@@ -73,17 +72,16 @@ class MoonPhaseCalc(file: File) {
         }
     }
 
-    fun calc(dateTime: DateTime): MoonPhaseFull {
+    fun calc(dateTime: LocalDateTime): MoonPhaseFull {
         val justDate = dateTime.withTimeAtStartOfDay()
         val matchingMoonPhase = try {
             moonPhaseList.last { it.first <= justDate }.second
-        }
-        catch (e: NoSuchElementException) {
+        } catch (e: NoSuchElementException) {
             throw NoSuchElementException(justDate.toString(), e)
         }
 
         return matchingMoonPhase
     }
 
-    data class RawMoonRow(val dateTime: DateTime, val phase: MoonPhaseFull)
+    data class RawMoonRow(val dateTime: LocalDateTime, val phase: MoonPhaseFull)
 }
