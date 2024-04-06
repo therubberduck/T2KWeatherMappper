@@ -9,11 +9,11 @@ import model.GroundCover
 import java.io.File
 
 val timeZoneAdjustment = 1
-val moonPhaseFileForYear = "moon-phases-2000-Europe_Warsaw.csv"
-val sunriseFileForYear = "sunrise_sunset_2000_Warsaw_horizon.csv"
-val inputFile = "2000-Europe-Warsaw.csv"
+val moonPhaseFileForYear = "DataFiles/moon-phases-2000-Europe_Stockholm.csv"
+val sunriseFileForYear = "DataFiles/sunrise_sunset_2000_Stockholm_horizon.csv"
+val inputFile = "DataFiles/2000-Europe-Stockholm.csv"
 val outputFile = "Year2000.csv"
-val outputFileXls = "Year2000.xlsx"
+val outputFileXls = "DataFiles/Year2000_Stockholm.xlsx"
 
 fun main() {
     val moonPhaseCalc = MoonPhaseCalc(File(moonPhaseFileForYear))

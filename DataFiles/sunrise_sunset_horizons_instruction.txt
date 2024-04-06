@@ -1,0 +1,6 @@
+Target Body: Sol
+Observer Location: Desired Location
+Time Specification: Start=2000-01-01, Stop=2001-01-01, Step=1 (minutes)4 
+Table Settings: (at bottom) 
+	RTS Flag: true visual horizon
+	CSV Format: true
