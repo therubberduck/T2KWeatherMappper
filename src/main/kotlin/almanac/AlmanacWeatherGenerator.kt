@@ -123,7 +123,7 @@ object AlmanacWeatherGenerator {
                 snow
             } else {
                 when (rain) {
-                    Rain.None -> throw IllegalStateException()
+                    Rain.None -> Snow.Light // Data may include no rain amount data, in which case we have to pretend very light snow
                     Rain.Light -> Snow.Light
                     Rain.Moderate -> Snow.Moderate
                     Rain.Heavy -> Snow.Heavy
@@ -134,7 +134,7 @@ object AlmanacWeatherGenerator {
                 rain
             } else {
                 when (snow) {
-                    Snow.None -> throw IllegalStateException()
+                    Snow.None -> Rain.Light // Data may include no snow amount data, in which case we have to pretend very light rain
                     Snow.Light -> Rain.Light
                     Snow.Moderate -> Rain.Moderate
                     Snow.Heavy -> Rain.Heavy

@@ -6,6 +6,7 @@ import almanac.Prettyfier.celsiusToPrettyString
 import converters.readCsv
 import events.DailyEventsMapper
 import model.*
+import org.joda.time.LocalTime
 import roundToFiveInt
 import java.io.File
 
@@ -28,7 +29,9 @@ class AlmanacMapper(
             val collectedRawHoursForDay = rawDayData.night + rawDayData.morning + rawDayData.afternoon + rawDayData.evening
             val weatherOfDay = shifts.map { it.weatherData }
             val moonPhases = listOf(shifts.first().moonPhase.simple, shifts.last().moonPhase.simple)
-            val sunriseSunset = sunriseSunsetCalc?.getSunriseSunsetFor(rawDayData.night.hour0.dto) ?: throw NotImplementedError("")
+            val sunriseSunset = sunriseSunsetCalc?.getSunriseSunsetFor(rawDayData.night.hour0.dto) ?: SunriseSunset(
+                LocalTime.now(), LocalTime.now()
+            )
             AlmanacDay(
                 rawDayData.night.hour0.dto.withTime(0,0,0,0),
                 shifts.last().moonPhase.letter,
@@ -44,7 +47,11 @@ class AlmanacMapper(
     }
 
     fun chunkToDays(hours: List<RawWeatherHour>): List<RawWeatherDay> {
-        val rawShiftData = hours.chunked(6).map {
+        val distinctHours = hours.distinctBy { it.dto }
+        val rawShiftData = distinctHours.chunked(6).map {
+            if(it[0].dto.hourOfDay % 6 != 0) {
+                throw IllegalStateException("Given hour was not start of a shift")
+            }
             RawWeatherShift(it[0], it[1], it[2], it[3], it[4], it[5])
         }
         return rawShiftData.chunked(4).map {
