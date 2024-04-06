@@ -1,5 +1,6 @@
 package model
 
+import events.EventDay
 import org.joda.time.LocalDateTime
 import org.joda.time.LocalTime
 
@@ -12,5 +13,5 @@ data class AlmanacDay(
     val morning: AlmanacShift,
     val afternoon: AlmanacShift,
     val evening: AlmanacShift,
-    val events: String
+    val events: EventDay
 )

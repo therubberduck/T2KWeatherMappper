@@ -1,7 +1,6 @@
 package events
 
 import almanac.*
-import almanac.KelvinToCelsius
 import mock.IVisibilityConverter
 import model.MoonPhase
 import model.RawWeatherHour
@@ -16,32 +15,31 @@ class DailyEventsMapper(
         rawHours: List<RawWeatherHour>,
         shiftWeather: List<Weather>,
         moonPhases: List<MoonPhase>
-    ): String {
+    ): EventDay {
         if (rawHours.size != 24) {
             throw IllegalStateException("Day data had wrong number of hours")
         }
 
         val mappedHours = rawHours.mapIndexed { index, rawWeatherHour -> mapHour(rawWeatherHour, index) }
-        val events = collectEvents(mappedHours, shiftWeather, moonPhases)
-        var prevEvent: WeatherEvent? = null
-        var eventDescriptions = ""
-        events.forEach {
-            if(prevEvent == null) {
-                eventDescriptions += Shift.fromHour(it.start).gameName + ":"
+        val rawEvents = collectEvents(mappedHours, shiftWeather, moonPhases)
+        val mappedEvents = rawEvents.map {
+            val startTime = String.format("%02d", it.start)
+            val endTime = String.format("%02d", it.end + 1)
+            val visibility = if(it.visibility != Visibility.CLEAR) {
+                " (${it.visibility.desc})"
             }
-            else if(Shift.fromHour(prevEvent?.end ?: 0) != Shift.fromHour(it.start)) {
-                eventDescriptions = eventDescriptions.removeSuffix(", ")
-                eventDescriptions += "\n" + Shift.fromHour(it.start).gameName + ":"
+            else {
+                ""
             }
-            eventDescriptions += (mapEventCollectionToDescription(it)) + ", "
-            prevEvent = it
+            Event(Shift.fromHour(it.start), "$startTime-$endTime", "${it.precipitation.desc}$visibility")
         }
-        return if(eventDescriptions.isNotEmpty()) {
-            eventDescriptions.removeSuffix(", ")
-        }
-        else {
-            "No weather events"
-        }
+        val eventShifts = mappedEvents.groupBy { it.shift }
+        val orderedShifts = mutableListOf<EventShift>()
+        eventShifts.getOrDefault(Shift.NIGHT, null)?.let { orderedShifts.add(EventShift(Shift.NIGHT, it)) }
+        eventShifts.getOrDefault(Shift.MORNING, null)?.let { orderedShifts.add(EventShift(Shift.MORNING, it)) }
+        eventShifts.getOrDefault(Shift.AFTERNOON, null)?.let { orderedShifts.add(EventShift(Shift.AFTERNOON, it)) }
+        eventShifts.getOrDefault(Shift.EVENING, null)?.let { orderedShifts.add(EventShift(Shift.EVENING, it)) }
+        return EventDay(orderedShifts)
     }
 
     fun mapHour(rawHour: RawWeatherHour, index: Int): WeatherEventHour {
@@ -99,8 +97,7 @@ class DailyEventsMapper(
         for (event in events) {
             val weatherOfShift = shiftWeather.fromHour(event.start)
             if ((weatherOfShift.dominant != event.weather ||
-                weatherOfShift.precipitation != event.precipitation) //&&
-//                event.isSignificantEvent()
+                weatherOfShift.precipitation != event.precipitation)
             ) {
                 finalEvents.add(event)
             }
@@ -116,32 +113,6 @@ class DailyEventsMapper(
             (hour <= 17) -> this[2]
             else -> this[3]
         }
-    }
-
-    private fun WeatherEvent.isSignificantEvent(): Boolean {
-        return if(
-            (this.precipitation == Rain.Light || this.precipitation == Snow.Light) &&
-            this.start == this.end
-        ) {
-            false
-        }
-        else {
-            true
-        }
-    }
-
-    fun mapEventCollectionToDescription(eventCollection: WeatherEvent): String {
-        val startTime = String.format("%02d", eventCollection.start)
-        val endTime = String.format("%02d", eventCollection.end + 1)
-
-        val visibility = if(eventCollection.visibility != Visibility.CLEAR) {
-            " (${eventCollection.visibility.desc})"
-        }
-        else {
-            ""
-        }
-
-        return "$startTime:00-$endTime:00: ${eventCollection.precipitation.desc}$visibility"
     }
 
     private fun mapDominantWeather(rawHour: RawWeatherHour, temp: Int): DominantWeather {

@@ -1,9 +1,9 @@
 package converters
 
+import events.EventDay
 import model.AlmanacDay
 import model.AlmanacShift
 import model.Shift
-import org.apache.poi.hssf.usermodel.HSSFRichTextString
 import org.apache.poi.ss.usermodel.HorizontalAlignment
 import org.apache.poi.ss.usermodel.VerticalAlignment
 import org.apache.poi.xssf.usermodel.*
@@ -27,16 +27,20 @@ class XlsMapper {
             fontSize = 10,
             isBold = true
         )
-        val calibri11 = workBook.makeFont(
-            fontName = "Calibri",
-            fontSize = 11,
-            isBold = false
-        )
-        val calibri11Bold = workBook.makeFont(
-            fontName = "Calibri",
-            fontSize = 11,
-            isBold = true
-        )
+        val calibri11 = workBook.createFont().apply {
+            fontName = "Calibri"
+            fontHeightInPoints = 11
+        }
+        val calibri11Bold = workBook.createFont().apply {
+            fontName = "Calibri"
+            fontHeightInPoints = 11
+            bold = true
+        }
+        val calibri11Italic = workBook.createFont().apply {
+            fontName = "Calibri"
+            fontHeightInPoints = 11
+            italic = true
+        }
         val moonphases10 = workBook.makeFont(
             fontName = "Moonphases",
             fontSize = 10,
@@ -94,30 +98,20 @@ class XlsMapper {
                 fontName = "Calibri"
                 fontHeightInPoints = 9
                 bold = false
-            }
+            },
+            eventShiftFont = calibri11Italic,
+            eventTimeFont = calibri11Bold
         )
 
         almanac.forEachIndexed { index, day ->
-            val localDate = day.dateTime.toLocalDate()
-            val date = localDate.toString("MMM d") + getDayOfMonthSuffix(localDate.dayOfMonth)
+            val numberRowsPerDay = 6
 
-            val headerRow = workSheet.createRow(index * 5 + 0)
-            addCell(headerRow, 0, date, styles.dateCellStyle)
-            addCell(headerRow, 1, "", styles.commonCenterCellStyle)
-            addCell(headerRow, 2, "Shift", styles.boldLeftCellStyle)
-            addCell(headerRow, 3, "Felt Temp", styles.boldCenterCellStyle)
-            addCell(headerRow, 4, "Temp", styles.boldCenterCellStyle)
-            addCell(headerRow, 5, "Weather", styles.boldLeftCellStyle)
-            addCell(headerRow, 6, "CC", styles.boldCenterCellStyle)
-            addCell(headerRow, 7, "Wind", styles.boldLeftCellStyle)
-            addCell(headerRow, 8, "Ground", styles.boldLeftCellStyle)
-            addCell(headerRow, 9, "Visibility", styles.boldCenterCellStyle)
-            addCell(headerRow, 10, "NV", styles.boldCenterCellStyle)
-
-            workSheet.addDataRow(index * 5 + 1, day.night, day, styles)
-            workSheet.addDataRow(index * 5 + 2, day.morning, day, styles)
-            workSheet.addDataRow(index * 5 + 3, day.afternoon, day, styles)
-            workSheet.addDataRow(index * 5 + 4, day.evening, day, styles)
+            workSheet.addHeaderRow(index * numberRowsPerDay + 0, day, styles)
+            workSheet.addDataRow(index * numberRowsPerDay + 1, day.night, day, styles)
+            workSheet.addDataRow(index * numberRowsPerDay + 2, day.morning, day, styles)
+            workSheet.addDataRow(index * numberRowsPerDay + 3, day.afternoon, day, styles)
+            workSheet.addDataRow(index * numberRowsPerDay + 4, day.evening, day, styles)
+            workSheet.addEventRow(index * numberRowsPerDay + 5, day.events, styles)
 
             writer.write(",,\"${day.events}\"")
             writer.newLine()
@@ -127,6 +121,24 @@ class XlsMapper {
         workBook.close()
 
         println("Almanac saved to ${outputFile.name}")
+    }
+
+    private fun XSSFSheet.addHeaderRow(index: Int, day: AlmanacDay, styles: Styles) {
+        val localDate = day.dateTime.toLocalDate()
+        val date = localDate.toString("MMM d") + getDayOfMonthSuffix(localDate.dayOfMonth)
+
+        val headerRow = createRow(index)
+        addCell(headerRow, 0, date, styles.dateCellStyle)
+        addCell(headerRow, 1, "", styles.commonCenterCellStyle)
+        addCell(headerRow, 2, "Shift", styles.boldLeftCellStyle)
+        addCell(headerRow, 3, "Felt Temp", styles.boldCenterCellStyle)
+        addCell(headerRow, 4, "Temp", styles.boldCenterCellStyle)
+        addCell(headerRow, 5, "Weather", styles.boldLeftCellStyle)
+        addCell(headerRow, 6, "CC", styles.boldCenterCellStyle)
+        addCell(headerRow, 7, "Wind", styles.boldLeftCellStyle)
+        addCell(headerRow, 8, "Ground", styles.boldLeftCellStyle)
+        addCell(headerRow, 9, "Visibility", styles.boldCenterCellStyle)
+        addCell(headerRow, 10, "NV", styles.boldCenterCellStyle)
     }
 
     private fun XSSFSheet.addDataRow(rowIndex: Int, shift: AlmanacShift, day: AlmanacDay, styles: Styles) {
@@ -187,6 +199,47 @@ class XlsMapper {
         addCell(row, 10, shift.nightVision, styles.commonCenterCellStyle)
     }
 
+    private fun XSSFSheet.addEventRow(rowIndex: Int, events: EventDay, styles: Styles) {
+        val row = createRow(rowIndex)
+        if(events.shifts.isNotEmpty()) {
+            val shiftNamePortions = mutableListOf<Pair<Int, Int>>()
+            val timeNamePortions = mutableListOf<Pair<Int, Int>>()
+            var value = ""
+            events.shifts.forEachIndexed { index, eventShift ->
+                val startItalicPosition = value.length
+                value += eventShift.shift.gameName + ": "
+                shiftNamePortions.add(Pair(startItalicPosition, value.length))
+                eventShift.events.forEachIndexed { eventIndex, event ->
+                    val startBoldPosition = value.length
+                    value += event.time + ": "
+                    timeNamePortions.add(Pair(startBoldPosition, value.length))
+                    value += event.eventText
+                    if(eventIndex != eventShift.events.size -1) {
+                        value += ", "
+                    }
+                }
+                if(index != events.shifts.size -1) {
+                    value += "\n"
+                }
+            }
+            val richText = XSSFRichTextString(value)
+            shiftNamePortions.forEach {
+                richText.applyFont(it.first, it.second, styles.eventShiftFont)
+            }
+            timeNamePortions.forEach {
+                richText.applyFont(it.first, it.second, styles.eventTimeFont)
+            }
+
+            row.createCell(2).apply {
+                setCellStyle(styles.commonLeftCellStyle)
+                setCellValue(richText)
+            }
+        }
+        else {
+            addCell(row, 2, "No weather events", styles.commonLeftCellStyle)
+        }
+    }
+
     private fun addCell(row: XSSFRow, column: Int, value: String, cellStyle: XSSFCellStyle) {
         row.createCell(column).apply {
             setCellStyle(cellStyle)
@@ -241,6 +294,8 @@ class XlsMapper {
         val moonPhaseCellStyle: XSSFCellStyle,
         val shiftCellStyle: XSSFCellStyle,
         val shiftUpperFont: XSSFFont,
-        val shiftLowerFont: XSSFFont
+        val shiftLowerFont: XSSFFont,
+        val eventShiftFont: XSSFFont,
+        val eventTimeFont: XSSFFont
     )
 }
