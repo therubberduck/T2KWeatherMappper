@@ -5,6 +5,7 @@ import mock.IVisibilityConverter
 import model.MoonPhase
 import model.RawWeatherHour
 import model.Shift
+import org.joda.time.LocalDateTime
 import kotlin.math.roundToInt
 
 class DailyEventsMapper(
@@ -25,13 +26,16 @@ class DailyEventsMapper(
         val mappedEvents = rawEvents.map {
             val startTime = String.format("%02d", it.start)
             val endTime = String.format("%02d", it.end + 1)
-            val visibility = if(it.visibility != Visibility.CLEAR) {
+            val visibility = if (it.visibility != Visibility.CLEAR) {
                 " (${it.visibility.desc})"
-            }
-            else {
+            } else {
                 ""
             }
-            Event(Shift.fromHour(it.start), "$startTime-$endTime", "${it.precipitation.desc}$visibility")
+            val precipitation = when (it.weather) {
+                DominantWeather.Rain, DominantWeather.Snow -> it.precipitation.desc
+                else -> it.weather.mainTag
+            }
+            Event(Shift.fromHour(it.start), "$startTime-$endTime", "$precipitation$visibility")
         }
         val eventShifts = mappedEvents.groupBy { it.shift }
         val orderedShifts = mutableListOf<EventShift>()
@@ -46,15 +50,21 @@ class DailyEventsMapper(
         val tempC = rawHour.tempK.toDouble().reduceTempForNuclearWinter(rawHour.dto).KelvinToCelsius().roundToInt()
         val rain = rawHour.rain1h.toRain()
         val snow = rawHour.snow1h.toSnow()
-        val precipitation = if (rain != Rain.None || snow != Snow.None) {
-            AlmanacWeatherGenerator.convertRainSnowForTemp(tempC, rain, snow)
-        } else {
-            Rain.None
+        val dominantWeather = mapDominantWeather(rawHour, tempC)
+        val precipitation = when {
+            rain != Rain.None || snow != Snow.None -> AlmanacWeatherGenerator.convertRainSnowForTemp(tempC, rain, snow)
+            dominantWeather == DominantWeather.Rain -> Rain.Light
+            dominantWeather == DominantWeather.Snow -> Snow.Light
+            else -> Rain.None
         }
-        return WeatherEventHour(index, mapDominantWeather(rawHour, tempC), precipitation)
+        return WeatherEventHour(index, dominantWeather, precipitation)
     }
 
-    fun collectEvents(eventHours: List<WeatherEventHour>, shiftWeather: List<Weather>, moonPhases: List<MoonPhase>): List<WeatherEvent> {
+    fun collectEvents(
+        eventHours: List<WeatherEventHour>,
+        shiftWeather: List<Weather>,
+        moonPhases: List<MoonPhase>
+    ): List<WeatherEvent> {
         // Gather the events
         val events = mutableListOf<WeatherEvent>()
         for (eventHour in eventHours) {
@@ -67,10 +77,9 @@ class DailyEventsMapper(
                     events.last().end = eventHour.hour
                 } else {
                     val weatherOfShift = shiftWeather.fromHour(eventHour.hour)
-                    val moonPhase = if(eventHour.hour < 12) {
+                    val moonPhase = if (eventHour.hour < 12) {
                         moonPhases[0]
-                    }
-                    else {
+                    } else {
                         moonPhases[1]
                     }
                     events.add(
@@ -97,7 +106,7 @@ class DailyEventsMapper(
         for (event in events) {
             val weatherOfShift = shiftWeather.fromHour(event.start)
             if ((weatherOfShift.dominant != event.weather ||
-                weatherOfShift.precipitation != event.precipitation)
+                        weatherOfShift.precipitation != event.precipitation)
             ) {
                 finalEvents.add(event)
             }
@@ -123,6 +132,7 @@ class DailyEventsMapper(
             } else {
                 DominantWeather.Snow
             }
+
             DominantWeather.Fog.mainTag -> DominantWeather.Fog
             DominantWeather.Mist.mainTag -> DominantWeather.Mist
             else -> DominantWeather.Clouds
@@ -156,4 +166,18 @@ class DailyEventsMapper(
         val precipitation: Precipitation,
         val visibility: Visibility
     )
+
+    fun Double.reduceTempForNuclearWinter(date: LocalDateTime): Double {
+        return if (date.monthOfYear in 5..8) {
+            this - 2.5
+        } else if (date.monthOfYear in 3..10) {
+            this - 5.0
+        } else {
+            this - 7.5
+        }
+    }
+
+    fun Double.KelvinToCelsius(): Double {
+        return this - 273.15
+    }
 }
